@@ -3,6 +3,22 @@
 Fetch the participant leaderboard for the latest historical contest in a
 DraftKings league.
 
+## Dashboard
+
+The Next.js dashboard displays sortable season standings and imported contest
+history from Supabase. It uses TanStack Query and TanStack Table for client data
+and sorting, Zod for API validation, and Tailwind CSS with shadcn-style UI
+components.
+
+Start the local application:
+
+```bash
+npm run dev
+```
+
+Then open [http://localhost:3000](http://localhost:3000). The server-side API
+routes use `DATABASE_URL`, `DK_LEAGUE_ID`, and `SEASON_NAME` from `.env`.
+
 ## Setup
 
 Requires Node.js 20 or newer.
