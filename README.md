@@ -107,11 +107,12 @@ Apply pending migrations:
 npm run db:migrate
 ```
 
-The schema stores leagues, seasons, contests, entries, players, rosters, raw
-import payloads, and manual result overrides. PostgreSQL views calculate
-effective contest outcomes and season standings. Row Level Security is enabled
-without public policies; frontend read policies will be added with the React
-application.
+The schema stores leagues, season identifiers, contests, entries, players,
+rosters, raw import payloads, and manual result overrides. A season's `name` is
+set from the fetched result's top-level `season` property on its first contest
+import. PostgreSQL views calculate effective contest outcomes and season
+standings, including `season_name`. Row Level Security is enabled without public
+policies; frontend read policies will be added with the React application.
 
 Set the season explicitly in `.env` so contests cannot be imported into the
 wrong year's standings:

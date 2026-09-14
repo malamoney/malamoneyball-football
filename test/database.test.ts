@@ -4,6 +4,7 @@ import test from "node:test";
 import { parseSeasonYear } from "../src/cli-args.js";
 import {
   findMissingSeasonMembers,
+  resolveSeasonName,
   type SeasonMember,
 } from "../src/database/import-contest.js";
 
@@ -12,6 +13,28 @@ const members: SeasonMember[] = [
   { user_key: "user-2", current_user_name: "Two" },
   { user_key: "user-3", current_user_name: "Three" },
 ];
+
+test("stores the first imported season identifier", () => {
+  assert.equal(resolveSeasonName(null, "malamoneyball 2026"), "malamoneyball 2026");
+});
+
+test("accepts a matching stored season identifier", () => {
+  assert.equal(
+    resolveSeasonName("malamoneyball 2026", "malamoneyball 2026"),
+    "malamoneyball 2026",
+  );
+});
+
+test("rejects a conflicting season identifier", () => {
+  assert.throws(
+    () => resolveSeasonName("malamoneyball 2026", "another 2026"),
+    /does not match the stored identifier/,
+  );
+});
+
+test("rejects a blank season identifier", () => {
+  assert.throws(() => resolveSeasonName(null, "   "), /cannot be blank/);
+});
 
 test("accepts a valid season year", () => {
   assert.equal(parseSeasonYear("2026"), 2026);
