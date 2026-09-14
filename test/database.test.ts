@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { parseSeasonYear } from "../src/cli-args.js";
+import { parseSeasonName, parseSeasonYear } from "../src/cli-args.js";
 import {
   findMissingSeasonMembers,
   resolveSeasonName,
@@ -47,6 +47,11 @@ test("requires a season year", () => {
 test("rejects a malformed season year", () => {
   assert.throws(() => parseSeasonYear("26"), /four-digit year/);
   assert.throws(() => parseSeasonYear("2026.5"), /four-digit year/);
+});
+
+test("requires and trims a season name", () => {
+  assert.equal(parseSeasonName("  malamoneyball 2026  "), "malamoneyball 2026");
+  assert.throws(() => parseSeasonName("   "), /Season name is required/);
 });
 
 test("identifies configured participants missing from DraftKings", () => {

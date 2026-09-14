@@ -108,21 +108,24 @@ npm run db:migrate
 ```
 
 The schema stores leagues, season identifiers, contests, entries, players,
-rosters, raw import payloads, and manual result overrides. A season's `name` is
-set from the fetched result's top-level `season` property on its first contest
-import. PostgreSQL views calculate effective contest outcomes and season
-standings, including `season_name`. Row Level Security is enabled without public
-policies; frontend read policies will be added with the React application.
+rosters, raw import payloads, and manual result overrides. Each season has a
+required `name`. Contest imports verify that it matches the fetched result's
+top-level `season` property and persist that value. PostgreSQL views calculate
+effective contest outcomes and season standings, including `season_name`. Row
+Level Security is enabled without public policies; frontend read policies will
+be added with the React application.
 
 Set the season explicitly in `.env` so contests cannot be imported into the
 wrong year's standings:
 
 ```dotenv
 SEASON_YEAR=2026
+SEASON_NAME=malamoneyball 2026
 ```
 
-The participant, contest import, and standings commands can override that value
-with `--season YYYY`.
+The participant, contest import, and standings commands can override the year
+with `--season YYYY`. Participant registration can override the name with
+`--season-name NAME`.
 
 ### Configure season membership
 
@@ -132,6 +135,7 @@ contest import. Add each participant using their stable DraftKings `userKey`:
 ```bash
 npm run participant:add -- \
   --season 2026 \
+  --season-name "malamoneyball 2026" \
   --user-key 4034388 \
   --user-name malamoney
 ```
@@ -165,8 +169,9 @@ The output contains `userKey`, `participantName`, `wins`, `losses`, `ties`, and
 the selected season's contests. Starting a new season and registering its
 participants produces zeroed standings without affecting prior seasons.
 
-For example, begin 2027 by registering its participants with `--season 2027`,
-then set `SEASON_YEAR=2027` before importing that season's contests.
+For example, begin 2027 by registering its participants with `--season 2027`
+and `--season-name "malamoneyball 2027"`, then update both `SEASON_YEAR` and
+`SEASON_NAME` before importing that season's contests.
 
 ### Enter a manual result
 

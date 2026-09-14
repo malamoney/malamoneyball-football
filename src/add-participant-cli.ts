@@ -1,4 +1,8 @@
-import { requireFlag, requireSeasonYear } from "./cli-args.js";
+import {
+  requireFlag,
+  requireSeasonName,
+  requireSeasonYear,
+} from "./cli-args.js";
 import { withDatabase } from "./database/client.js";
 import { addSeasonParticipant } from "./database/participants.js";
 
@@ -18,12 +22,14 @@ async function main(): Promise<void> {
   const userKey = requireFlag("user-key");
   const userName = requireFlag("user-name");
   const seasonYear = requireSeasonYear();
+  const seasonName = requireSeasonName();
 
   await withDatabase((sql) =>
     addSeasonParticipant(sql, {
       leagueId,
       leagueName,
       seasonYear,
+      seasonName,
       expectedParticipantCount,
       userKey,
       userName,

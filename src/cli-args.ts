@@ -44,3 +44,18 @@ export function parseSeasonYear(value: string | undefined): number {
 export function requireSeasonYear(): number {
   return parseSeasonYear(readFlag("season") ?? process.env.SEASON_YEAR);
 }
+
+export function parseSeasonName(value: string | undefined): string {
+  const seasonName = value?.trim();
+  if (!seasonName) {
+    throw new Error(
+      "Season name is required. Set SEASON_NAME or pass --season-name NAME.",
+    );
+  }
+
+  return seasonName;
+}
+
+export function requireSeasonName(): string {
+  return parseSeasonName(readFlag("season-name") ?? process.env.SEASON_NAME);
+}

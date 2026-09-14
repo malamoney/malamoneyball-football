@@ -32,7 +32,7 @@ interface ContestEntryId {
 
 interface SeasonId {
   season_id: number;
-  name: string | null;
+  name: string;
 }
 
 interface ContestSeasonId {
