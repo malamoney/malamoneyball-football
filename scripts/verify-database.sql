@@ -3,30 +3,53 @@ BEGIN;
 INSERT INTO public.leagues (league_id, name)
 VALUES ('__verification__', 'Database verification');
 
+INSERT INTO public.seasons (
+  league_id,
+  year,
+  expected_participant_count
+)
+VALUES
+  ('__verification__', 2026, 14),
+  ('__verification__', 2027, 14);
+
 INSERT INTO public.participants (user_key, current_user_name)
 SELECT
   '__verification_user_' || participant_number,
   'Verification User ' || participant_number
 FROM generate_series(1, 14) AS participant_number;
 
-INSERT INTO public.league_participants (league_id, user_key)
+INSERT INTO public.season_participants (season_id, user_key)
 SELECT
-  '__verification__',
+  s.season_id,
   '__verification_user_' || participant_number
-FROM generate_series(1, 14) AS participant_number;
+FROM public.seasons s
+CROSS JOIN generate_series(1, 14) AS participant_number
+WHERE s.league_id = '__verification__'
+  AND s.year IN (2026, 2027);
 
 INSERT INTO public.contests (
   contest_key,
-  league_id,
+  season_id,
   name,
   draft_group_id,
   fetched_at
 )
-VALUES
-  ('__verification_even__', '__verification__', 'Even field', 1, now()),
-  ('__verification_tie__', '__verification__', 'Even boundary tie', 2, now()),
-  ('__verification_odd__', '__verification__', 'Odd field', 3, now()),
-  ('__verification_override__', '__verification__', 'Manual override', 4, now());
+SELECT
+  contest_key,
+  s.season_id,
+  contest_name,
+  draft_group_id,
+  now()
+FROM public.seasons s
+CROSS JOIN (
+  VALUES
+    ('__verification_even__', 'Even field', 1),
+    ('__verification_tie__', 'Even boundary tie', 2),
+    ('__verification_odd__', 'Odd field', 3),
+    ('__verification_override__', 'Manual override', 4)
+) AS verification_contests(contest_key, contest_name, draft_group_id)
+WHERE s.league_id = '__verification__'
+  AND s.year = 2026;
 
 INSERT INTO public.contest_entries (
   contest_key,
@@ -202,6 +225,29 @@ BEGIN
       AND new_fantasy_points = 200
   ) <> 1 THEN
     RAISE EXCEPTION 'Manual override should create an audit record';
+  END IF;
+
+  IF (
+    SELECT count(*)
+    FROM public.season_standings
+    WHERE league_id = '__verification__'
+      AND season_year = 2027
+      AND wins = 0
+      AND losses = 0
+      AND ties = 0
+      AND total_points = 0
+  ) <> 14 THEN
+    RAISE EXCEPTION 'A new season should begin with zeroed standings';
+  END IF;
+
+  IF (
+    SELECT count(*)
+    FROM public.season_standings
+    WHERE league_id = '__verification__'
+      AND season_year = 2026
+      AND wins + losses + ties > 0
+  ) <> 14 THEN
+    RAISE EXCEPTION 'The prior season should retain its contest outcomes';
   END IF;
 END;
 $$;

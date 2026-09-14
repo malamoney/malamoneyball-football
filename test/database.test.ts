@@ -1,20 +1,34 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { parseSeasonYear } from "../src/cli-args.js";
 import {
-  findMissingLeagueMembers,
-  type LeagueMember,
+  findMissingSeasonMembers,
+  type SeasonMember,
 } from "../src/database/import-contest.js";
 
-const members: LeagueMember[] = [
+const members: SeasonMember[] = [
   { user_key: "user-1", current_user_name: "One" },
   { user_key: "user-2", current_user_name: "Two" },
   { user_key: "user-3", current_user_name: "Three" },
 ];
 
+test("accepts a valid season year", () => {
+  assert.equal(parseSeasonYear("2026"), 2026);
+});
+
+test("requires a season year", () => {
+  assert.throws(() => parseSeasonYear(undefined), /Season is required/);
+});
+
+test("rejects a malformed season year", () => {
+  assert.throws(() => parseSeasonYear("26"), /four-digit year/);
+  assert.throws(() => parseSeasonYear("2026.5"), /four-digit year/);
+});
+
 test("identifies configured participants missing from DraftKings", () => {
   assert.deepEqual(
-    findMissingLeagueMembers(members, [
+    findMissingSeasonMembers(members, [
       { userKey: "user-1" },
       { userKey: "user-3" },
     ]),
@@ -24,15 +38,15 @@ test("identifies configured participants missing from DraftKings", () => {
 
 test("rejects a DraftKings participant outside configured membership", () => {
   assert.throws(
-    () => findMissingLeagueMembers(members, [{ userKey: "unexpected" }]),
-    /not an active league member/,
+    () => findMissingSeasonMembers(members, [{ userKey: "unexpected" }]),
+    /not an active season member/,
   );
 });
 
 test("rejects duplicate contest results for a participant", () => {
   assert.throws(
     () =>
-      findMissingLeagueMembers(members, [
+      findMissingSeasonMembers(members, [
         { userKey: "user-1" },
         { userKey: "user-1" },
       ]),
@@ -42,14 +56,14 @@ test("rejects duplicate contest results for a participant", () => {
 
 test("refuses imports before league membership is configured", () => {
   assert.throws(
-    () => findMissingLeagueMembers([], []),
-    /complete league membership/,
+    () => findMissingSeasonMembers([], []),
+    /complete season membership/,
   );
 });
 
 test("refuses imports until the expected membership count is configured", () => {
   assert.throws(
-    () => findMissingLeagueMembers(members, [], 14),
+    () => findMissingSeasonMembers(members, [], 14),
     /3 active participants, but 14 are required/,
   );
 });

@@ -18,9 +18,10 @@ export interface StandingsEntry {
   totalPoints: number;
 }
 
-export async function getLeagueStandings(
+export async function getSeasonStandings(
   sql: DatabaseClient,
   leagueId: string,
+  seasonYear: number,
 ): Promise<StandingsEntry[]> {
   const rows = await sql<StandingsRow[]>`
     SELECT
@@ -30,8 +31,9 @@ export async function getLeagueStandings(
       losses,
       ties,
       total_points
-    FROM public.league_standings
+    FROM public.season_standings
     WHERE league_id = ${leagueId}
+      AND season_year = ${seasonYear}
     ORDER BY
       wins DESC,
       ties DESC,

@@ -1,6 +1,6 @@
-import { requireFlag } from "./cli-args.js";
+import { requireFlag, requireSeasonYear } from "./cli-args.js";
 import { withDatabase } from "./database/client.js";
-import { addLeagueParticipant } from "./database/participants.js";
+import { addSeasonParticipant } from "./database/participants.js";
 
 const DEFAULT_LEAGUE_ID = "uyqc2yy8";
 const DEFAULT_LEAGUE_NAME = "malamoneyball football";
@@ -17,17 +17,22 @@ async function main(): Promise<void> {
   }
   const userKey = requireFlag("user-key");
   const userName = requireFlag("user-name");
+  const seasonYear = requireSeasonYear();
 
   await withDatabase((sql) =>
-    addLeagueParticipant(sql, {
+    addSeasonParticipant(sql, {
       leagueId,
       leagueName,
+      seasonYear,
       expectedParticipantCount,
       userKey,
       userName,
     })
   );
-  console.log("Added " + userName + " (" + userKey + ") to " + leagueId + ".");
+  console.log(
+    "Added " + userName + " (" + userKey + ") to " + leagueId +
+      " for the " + seasonYear + " season.",
+  );
 }
 
 main().catch((error: unknown) => {

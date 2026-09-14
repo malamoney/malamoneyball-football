@@ -1,3 +1,4 @@
+import { requireSeasonYear } from "./cli-args.js";
 import { withDatabase } from "./database/client.js";
 import { importContestResults } from "./database/import-contest.js";
 import { getLatestContestLeaderboard } from "./draftkings.js";
@@ -14,6 +15,7 @@ async function main(): Promise<void> {
 
   const leagueId = process.env.DK_LEAGUE_ID ?? DEFAULT_LEAGUE_ID;
   const leagueName = process.env.LEAGUE_NAME ?? DEFAULT_LEAGUE_NAME;
+  const seasonYear = requireSeasonYear();
   const expectedParticipantCount = Number(
     process.env.EXPECTED_PARTICIPANT_COUNT ?? DEFAULT_PARTICIPANT_COUNT,
   );
@@ -31,6 +33,7 @@ async function main(): Promise<void> {
     importContestResults(sql, result, {
       leagueId,
       leagueName,
+      seasonYear,
       expectedParticipantCount,
     })
   );

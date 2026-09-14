@@ -105,25 +105,38 @@ Apply pending migrations:
 npm run db:migrate
 ```
 
-The schema stores contests, entries, players, rosters, raw import payloads, and
-manual result overrides. PostgreSQL views calculate effective contest outcomes
-and overall league standings. Row Level Security is enabled without public
-policies; frontend read policies will be added with the React application.
+The schema stores leagues, seasons, contests, entries, players, rosters, raw
+import payloads, and manual result overrides. PostgreSQL views calculate
+effective contest outcomes and season standings. Row Level Security is enabled
+without public policies; frontend read policies will be added with the React
+application.
 
-### Configure league membership
+Set the season explicitly in `.env` so contests cannot be imported into the
+wrong year's standings:
 
-Every expected participant must be configured before the first contest import.
-Add each participant using their stable DraftKings `userKey`:
+```dotenv
+SEASON_YEAR=2026
+```
+
+The participant, contest import, and standings commands can override that value
+with `--season YYYY`.
+
+### Configure season membership
+
+Every expected participant must be configured for the season before its first
+contest import. Add each participant using their stable DraftKings `userKey`:
 
 ```bash
 npm run participant:add -- \
+  --season 2026 \
   --user-key 4034388 \
   --user-name malamoney
 ```
 
-The importer rejects unknown or duplicate participants. Configured participants
-missing from DraftKings are inserted with zero points and placed last. Imports
-also fail unless the active membership count matches
+Adding a participant creates the season when needed. The importer rejects
+unknown or duplicate participants. Configured participants missing from
+DraftKings are inserted with zero points and placed last. Imports also fail
+unless that season's active membership count matches
 `EXPECTED_PARTICIPANT_COUNT`, which defaults to 14.
 
 ### Import a contest
@@ -131,7 +144,7 @@ also fail unless the active membership count matches
 Fetch and transactionally store the latest completed contest:
 
 ```bash
-npm run contest:import
+npm run contest:import -- --season 2026
 ```
 
 The command is safe to rerun. Imported facts are updated, raw payloads are
@@ -141,12 +154,16 @@ are not overwritten.
 ### View standings
 
 ```bash
-npm run standings
+npm run standings -- --season 2026
 ```
 
 The output contains `userKey`, `participantName`, `wins`, `losses`, `ties`, and
-`totalPoints`. Results are calculated from effective fantasy points across every
-stored contest.
+`totalPoints`. Results are calculated from effective fantasy points across only
+the selected season's contests. Starting a new season and registering its
+participants produces zeroed standings without affecting prior seasons.
+
+For example, begin 2027 by registering its participants with `--season 2027`,
+then set `SEASON_YEAR=2027` before importing that season's contests.
 
 ### Enter a manual result
 

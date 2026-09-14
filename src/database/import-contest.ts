@@ -4,17 +4,19 @@ import type { DatabaseClient } from "./client.js";
 export interface ImportContestOptions {
   leagueId: string;
   leagueName: string;
+  seasonYear: number;
   expectedParticipantCount: number;
   fetchedAt?: Date;
 }
 
 export interface ImportContestSummary {
   contestKey: string;
+  seasonYear: number;
   draftKingsEntries: number;
   missingEntries: number;
 }
 
-export interface LeagueMember {
+export interface SeasonMember {
   user_key: string;
   current_user_name: string;
 }
@@ -27,18 +29,26 @@ interface ContestEntryId {
   contest_entry_id: number;
 }
 
+interface SeasonId {
+  season_id: number;
+}
+
+interface ContestSeasonId {
+  season_id: number;
+}
+
 function points(value: number): number {
   return Math.round((value + Number.EPSILON) * 100) / 100;
 }
 
-export function findMissingLeagueMembers(
-  members: readonly LeagueMember[],
+export function findMissingSeasonMembers(
+  members: readonly SeasonMember[],
   returnedParticipants: readonly ReturnedParticipant[],
   expectedParticipantCount?: number,
-): LeagueMember[] {
+): SeasonMember[] {
   if (members.length === 0) {
     throw new Error(
-      "The league has no active participants. Add the complete league " +
+      "The season has no active participants. Add the complete season " +
         "membership before importing a contest.",
     );
   }
@@ -47,7 +57,7 @@ export function findMissingLeagueMembers(
     members.length !== expectedParticipantCount
   ) {
     throw new Error(
-      "The league has " + members.length + " active participants, but " +
+      "The season has " + members.length + " active participants, but " +
         expectedParticipantCount + " are required before importing a contest.",
     );
   }
@@ -60,7 +70,7 @@ export function findMissingLeagueMembers(
     if (!membersByUserKey.has(entry.userKey)) {
       throw new Error(
         "DraftKings returned userKey " + entry.userKey +
-          ", but that participant is not an active league member.",
+          ", but that participant is not an active season member.",
       );
     }
     if (returnedUserKeys.has(entry.userKey)) {
@@ -83,54 +93,75 @@ export async function importContestResults(
 
   return sql.begin(async (transaction) => {
     await transaction`
-      INSERT INTO public.leagues (
-        league_id,
-        name,
-        expected_participant_count
-      )
-      VALUES (
-        ${options.leagueId},
-        ${options.leagueName},
-        ${options.expectedParticipantCount}
-      )
+      INSERT INTO public.leagues (league_id, name)
+      VALUES (${options.leagueId}, ${options.leagueName})
       ON CONFLICT (league_id) DO UPDATE
-      SET
-        name = EXCLUDED.name,
-        expected_participant_count = EXCLUDED.expected_participant_count
+      SET name = EXCLUDED.name
     `;
 
-    const members = await transaction<LeagueMember[]>`
+    const seasonRows = await transaction<SeasonId[]>`
+      SELECT season_id
+      FROM public.seasons
+      WHERE league_id = ${options.leagueId}
+        AND year = ${options.seasonYear}
+        AND expected_participant_count = ${options.expectedParticipantCount}
+    `;
+    if (seasonRows.length === 0) {
+      throw new Error(
+        "The " + options.seasonYear + " season is not configured for league " +
+          options.leagueId + " with an expected participant count of " +
+          options.expectedParticipantCount + ". Add its participants first.",
+      );
+    }
+    const seasonId = seasonRows[0]!.season_id;
+
+    const members = await transaction<SeasonMember[]>`
       SELECT p.user_key, p.current_user_name
-      FROM public.league_participants lp
-      JOIN public.participants p ON p.user_key = lp.user_key
-      WHERE lp.league_id = ${options.leagueId}
-        AND lp.active = true
+      FROM public.season_participants sp
+      JOIN public.participants p ON p.user_key = sp.user_key
+      WHERE sp.season_id = ${seasonId}
+        AND sp.active = true
       ORDER BY p.user_key
     `;
-    const missingMembers = findMissingLeagueMembers(
+    const missingMembers = findMissingSeasonMembers(
       members,
       result.leaderboard,
       options.expectedParticipantCount,
     );
 
+    const existingContestRows = await transaction<ContestSeasonId[]>`
+      SELECT season_id
+      FROM public.contests
+      WHERE contest_key = ${result.contestKey}
+    `;
+    if (
+      existingContestRows.length > 0 &&
+      existingContestRows[0]!.season_id !== seasonId
+    ) {
+      throw new Error(
+        "Contest " + result.contestKey + " already belongs to a different " +
+          "season and cannot be reassigned.",
+      );
+    }
+
     await transaction`
       INSERT INTO public.contests (
         contest_key,
-        league_id,
+        season_id,
         name,
         draft_group_id,
         fetched_at
       )
       VALUES (
         ${result.contestKey},
-        ${options.leagueId},
+        ${seasonId},
         ${result.name},
         ${result.draftGroupId},
         ${fetchedAt}
       )
       ON CONFLICT (contest_key) DO UPDATE
       SET
-        league_id = EXCLUDED.league_id,
+        season_id = EXCLUDED.season_id,
         name = EXCLUDED.name,
         draft_group_id = EXCLUDED.draft_group_id,
         fetched_at = EXCLUDED.fetched_at
@@ -266,6 +297,7 @@ export async function importContestResults(
 
     return {
       contestKey: result.contestKey,
+      seasonYear: options.seasonYear,
       draftKingsEntries: result.leaderboard.length,
       missingEntries: missingMembers.length,
     };
