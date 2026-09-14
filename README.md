@@ -69,8 +69,10 @@ All DraftKings API responses are validated with Zod before they are used. The
 final normalized result is also checked against a strict schema, making it safe
 to use as the input boundary for database persistence.
 
+To retain a local copy without importing it, run:
+
 ```bash
-DK_COOKIE='jwe=...; iv=...;' npm start > leaderboard.json
+npm run getcontestresults
 ```
 
 The league and API host can be overridden when needed:
@@ -92,9 +94,91 @@ const contestLeaderboard = await getLatestContestLeaderboard({
 });
 ```
 
+## Supabase database
+
+Set `DATABASE_URL` in `.env` to the Supabase Session Pooler connection string
+with `sslmode=require`. Keep this value private.
+
+Apply pending migrations:
+
+```bash
+npm run db:migrate
+```
+
+The schema stores contests, entries, players, rosters, raw import payloads, and
+manual result overrides. PostgreSQL views calculate effective contest outcomes
+and overall league standings. Row Level Security is enabled without public
+policies; frontend read policies will be added with the React application.
+
+### Configure league membership
+
+Every expected participant must be configured before the first contest import.
+Add each participant using their stable DraftKings `userKey`:
+
+```bash
+npm run participant:add -- \
+  --user-key 4034388 \
+  --user-name malamoney
+```
+
+The importer rejects unknown or duplicate participants. Configured participants
+missing from DraftKings are inserted with zero points and placed last. Imports
+also fail unless the active membership count matches
+`EXPECTED_PARTICIPANT_COUNT`, which defaults to 14.
+
+### Import a contest
+
+Fetch and transactionally store the latest completed contest:
+
+```bash
+npm run contest:import
+```
+
+The command is safe to rerun. Imported facts are updated, raw payloads are
+archived, missing participants retain their default rows, and manual overrides
+are not overwritten.
+
+### View standings
+
+```bash
+npm run standings
+```
+
+The output contains `userKey`, `participantName`, `wins`, `losses`, `ties`, and
+`totalPoints`. Results are calculated from effective fantasy points across every
+stored contest.
+
+### Enter a manual result
+
+Override a participant's fantasy points while retaining the original result:
+
+```bash
+npm run result:override -- \
+  --contest-key 195471290 \
+  --user-key 4034388 \
+  --points 142.68 \
+  --reason "Participant submitted results manually"
+```
+
+Remove an override and return to the imported/default result:
+
+```bash
+npm run result:override -- \
+  --contest-key 195471290 \
+  --user-key 4034388 \
+  --clear
+```
+
+Every override change is recorded in an audit table. Rank and win/loss/tie
+outcomes recalculate automatically.
+
 ## Validation
 
 ```bash
 npm test
 npm run typecheck
+npm run db:verify
 ```
+
+`db:verify` exercises standings and override behavior against Supabase inside a
+transaction that is always rolled back.

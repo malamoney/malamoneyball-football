@@ -5,4 +5,4 @@ dist/
 !.env.example
 *.log
 contest.json
-leaderboard.json
+contest-results.json
