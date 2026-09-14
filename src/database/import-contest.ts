@@ -4,7 +4,6 @@ import type { DatabaseClient } from "./client.js";
 export interface ImportContestOptions {
   leagueId: string;
   leagueName: string;
-  seasonYear: number;
   expectedParticipantCount: number;
   fetchedAt?: Date;
 }
@@ -12,7 +11,6 @@ export interface ImportContestOptions {
 export interface ImportContestSummary {
   contestKey: string;
   season: string;
-  seasonYear: number;
   draftKingsEntries: number;
   missingEntries: number;
 }
@@ -32,7 +30,6 @@ interface ContestEntryId {
 
 interface SeasonId {
   season_id: number;
-  name: string;
 }
 
 interface ContestSeasonId {
@@ -41,25 +38,6 @@ interface ContestSeasonId {
 
 function points(value: number): number {
   return Math.round((value + Number.EPSILON) * 100) / 100;
-}
-
-export function resolveSeasonName(
-  storedSeasonName: string | null,
-  importedSeasonName: string,
-): string {
-  const seasonName = importedSeasonName.trim();
-  if (!seasonName) {
-    throw new Error("The imported season identifier cannot be blank.");
-  }
-  if (storedSeasonName !== null && storedSeasonName !== seasonName) {
-    throw new Error(
-      "The imported season identifier \"" + seasonName +
-        "\" does not match the stored identifier \"" + storedSeasonName +
-        "\".",
-    );
-  }
-
-  return seasonName;
 }
 
 export function findMissingSeasonMembers(
@@ -121,27 +99,20 @@ export async function importContestResults(
     `;
 
     const seasonRows = await transaction<SeasonId[]>`
-      SELECT season_id, name
+      SELECT season_id
       FROM public.seasons
       WHERE league_id = ${options.leagueId}
-        AND year = ${options.seasonYear}
+        AND name = ${result.season}
         AND expected_participant_count = ${options.expectedParticipantCount}
     `;
     if (seasonRows.length === 0) {
       throw new Error(
-        "The " + options.seasonYear + " season is not configured for league " +
+        "Season \"" + result.season + "\" is not configured for league " +
           options.leagueId + " with an expected participant count of " +
           options.expectedParticipantCount + ". Add its participants first.",
       );
     }
     const seasonId = seasonRows[0]!.season_id;
-    const seasonName = resolveSeasonName(seasonRows[0]!.name, result.season);
-
-    await transaction`
-      UPDATE public.seasons
-      SET name = ${seasonName}
-      WHERE season_id = ${seasonId}
-    `;
 
     const members = await transaction<SeasonMember[]>`
       SELECT p.user_key, p.current_user_name
@@ -325,8 +296,7 @@ export async function importContestResults(
 
     return {
       contestKey: result.contestKey,
-      season: seasonName,
-      seasonYear: options.seasonYear,
+      season: result.season,
       draftKingsEntries: result.leaderboard.length,
       missingEntries: missingMembers.length,
     };

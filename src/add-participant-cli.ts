@@ -1,7 +1,6 @@
 import {
   requireFlag,
   requireSeasonName,
-  requireSeasonYear,
 } from "./cli-args.js";
 import { withDatabase } from "./database/client.js";
 import { addSeasonParticipant } from "./database/participants.js";
@@ -21,14 +20,12 @@ async function main(): Promise<void> {
   }
   const userKey = requireFlag("user-key");
   const userName = requireFlag("user-name");
-  const seasonYear = requireSeasonYear();
   const seasonName = requireSeasonName();
 
   await withDatabase((sql) =>
     addSeasonParticipant(sql, {
       leagueId,
       leagueName,
-      seasonYear,
       seasonName,
       expectedParticipantCount,
       userKey,
@@ -37,7 +34,7 @@ async function main(): Promise<void> {
   );
   console.log(
     "Added " + userName + " (" + userKey + ") to " + leagueId +
-      " for the " + seasonYear + " season.",
+      " for season \"" + seasonName + "\".",
   );
 }
 
