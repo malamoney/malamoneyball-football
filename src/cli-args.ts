@@ -22,29 +22,6 @@ export function requireFlag(name: string): string {
   return value;
 }
 
-export function parseSeasonYear(value: string | undefined): number {
-  if (!value) {
-    throw new Error(
-      "Season is required. Set SEASON_YEAR or pass --season YYYY.",
-    );
-  }
-
-  if (!/^\d{4}$/.test(value)) {
-    throw new Error("Season must be a four-digit year from 2000 through 9999.");
-  }
-
-  const year = Number(value);
-  if (year < 2000) {
-    throw new Error("Season must be a four-digit year from 2000 through 9999.");
-  }
-
-  return year;
-}
-
-export function requireSeasonYear(): number {
-  return parseSeasonYear(readFlag("season") ?? process.env.SEASON_YEAR);
-}
-
 export function parseSeasonName(value: string | undefined): string {
   const seasonName = value?.trim();
   if (!seasonName) {

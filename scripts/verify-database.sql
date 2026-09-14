@@ -5,13 +5,12 @@ VALUES ('__verification__', 'Database verification');
 
 INSERT INTO public.seasons (
   league_id,
-  year,
   name,
   expected_participant_count
 )
 VALUES
-  ('__verification__', 2026, 'Verification 2026', 14),
-  ('__verification__', 2027, 'Verification 2027', 14);
+  ('__verification__', 'Verification 2026', 14),
+  ('__verification__', 'Verification 2027', 14);
 
 INSERT INTO public.participants (user_key, current_user_name)
 SELECT
@@ -26,7 +25,7 @@ SELECT
 FROM public.seasons s
 CROSS JOIN generate_series(1, 14) AS participant_number
 WHERE s.league_id = '__verification__'
-  AND s.year IN (2026, 2027);
+  AND s.name IN ('Verification 2026', 'Verification 2027');
 
 INSERT INTO public.contests (
   contest_key,
@@ -50,7 +49,7 @@ CROSS JOIN (
     ('__verification_override__', 'Manual override', 4)
 ) AS verification_contests(contest_key, contest_name, draft_group_id)
 WHERE s.league_id = '__verification__'
-  AND s.year = 2026;
+  AND s.name = 'Verification 2026';
 
 INSERT INTO public.contest_entries (
   contest_key,
@@ -232,7 +231,7 @@ BEGIN
     SELECT count(*)
     FROM public.season_standings
     WHERE league_id = '__verification__'
-      AND season_year = 2027
+      AND season_name = 'Verification 2027'
       AND wins = 0
       AND losses = 0
       AND ties = 0
@@ -245,7 +244,6 @@ BEGIN
     SELECT count(*)
     FROM public.season_standings
     WHERE league_id = '__verification__'
-      AND season_year = 2026
       AND season_name = 'Verification 2026'
   ) <> 14 THEN
     RAISE EXCEPTION 'Season standings should expose the season identifier';
@@ -255,7 +253,7 @@ BEGIN
     SELECT count(*)
     FROM public.season_standings
     WHERE league_id = '__verification__'
-      AND season_year = 2026
+      AND season_name = 'Verification 2026'
       AND wins + losses + ties > 0
   ) <> 14 THEN
     RAISE EXCEPTION 'The prior season should retain its contest outcomes';
