@@ -1,34 +1,45 @@
 import type { DatabaseClient } from "./client.js";
 
-export interface LeagueParticipantInput {
+export interface SeasonParticipantInput {
   leagueId: string;
   leagueName: string;
+  seasonYear: number;
   expectedParticipantCount: number;
   userKey: string;
   userName: string;
 }
 
-export async function addLeagueParticipant(
+interface SeasonIdRow {
+  season_id: number;
+}
+
+export async function addSeasonParticipant(
   sql: DatabaseClient,
-  input: LeagueParticipantInput,
+  input: SeasonParticipantInput,
 ): Promise<void> {
   await sql.begin(async (transaction) => {
     await transaction`
-      INSERT INTO public.leagues (
+      INSERT INTO public.leagues (league_id, name)
+      VALUES (${input.leagueId}, ${input.leagueName})
+      ON CONFLICT (league_id) DO UPDATE
+      SET name = EXCLUDED.name
+    `;
+    const seasonRows = await transaction<SeasonIdRow[]>`
+      INSERT INTO public.seasons (
         league_id,
-        name,
+        year,
         expected_participant_count
       )
       VALUES (
         ${input.leagueId},
-        ${input.leagueName},
+        ${input.seasonYear},
         ${input.expectedParticipantCount}
       )
-      ON CONFLICT (league_id) DO UPDATE
-      SET
-        name = EXCLUDED.name,
-        expected_participant_count = EXCLUDED.expected_participant_count
+      ON CONFLICT (league_id, year) DO UPDATE
+      SET expected_participant_count = EXCLUDED.expected_participant_count
+      RETURNING season_id
     `;
+    const seasonId = seasonRows[0]!.season_id;
     await transaction`
       INSERT INTO public.participants (user_key, current_user_name)
       VALUES (${input.userKey}, ${input.userName})
@@ -36,9 +47,9 @@ export async function addLeagueParticipant(
       SET current_user_name = EXCLUDED.current_user_name
     `;
     await transaction`
-      INSERT INTO public.league_participants (league_id, user_key, active)
-      VALUES (${input.leagueId}, ${input.userKey}, true)
-      ON CONFLICT (league_id, user_key) DO UPDATE SET active = true
+      INSERT INTO public.season_participants (season_id, user_key, active)
+      VALUES (${seasonId}, ${input.userKey}, true)
+      ON CONFLICT (season_id, user_key) DO UPDATE SET active = true
     `;
   });
 }
