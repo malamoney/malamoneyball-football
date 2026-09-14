@@ -1,7 +1,25 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { getLatestContestLeaderboard } from "../src/draftkings.js";
+import {
+  deriveSeasonName,
+  getLatestContestLeaderboard,
+} from "../src/draftkings.js";
+
+test("derives the season from a trailing week number", () => {
+  assert.equal(
+    deriveSeasonName("malamoneyball 2026 week 1"),
+    "malamoneyball 2026",
+  );
+  assert.equal(
+    deriveSeasonName("malamoneyball 2026 week 17"),
+    "malamoneyball 2026",
+  );
+});
+
+test("leaves a contest name without a trailing week unchanged", () => {
+  assert.equal(deriveSeasonName("malamoneyball 2026 playoffs"), "malamoneyball 2026 playoffs");
+});
 
 test("returns the latest contest metadata and its leaderboard", async () => {
   const requests: Array<{ url: string; cookie: string | null }> = [];
@@ -80,6 +98,7 @@ test("returns the latest contest metadata and its leaderboard", async () => {
   assert.deepEqual(result, {
     contestKey: "195471290",
     name: "malamoneyball 2026 week 1",
+    season: "malamoneyball 2026",
     draftGroupId: 151307,
     leaderboard: [
       {
