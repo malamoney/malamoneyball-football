@@ -22,7 +22,8 @@ DK_COOKIE='jwe=...; iv=...;' npm start
 The command performs these calls in order:
 
 1. Requests the latest historical contest for league `uyqc2yy8`.
-2. Extracts its `contestKey`, `name`, and `draftGroupId`, then requests that
+2. Extracts its `contestKey`, `name`, and `draftGroupId`, derives `season` by
+   removing the trailing `week <number>` from the name, then requests that
    contest's leaderboard.
 3. Requests the draft group's player data once to build a salary and image
    lookup by `draftableId`.
@@ -36,6 +37,7 @@ standard output, so it can be redirected to a file if desired:
 {
   "contestKey": "195471290",
   "name": "malamoneyball 2026 week 1",
+  "season": "malamoneyball 2026",
   "draftGroupId": 151307,
   "leaderboard": [
     {
@@ -105,21 +107,25 @@ Apply pending migrations:
 npm run db:migrate
 ```
 
-The schema stores leagues, seasons, contests, entries, players, rosters, raw
-import payloads, and manual result overrides. PostgreSQL views calculate
-effective contest outcomes and season standings. Row Level Security is enabled
-without public policies; frontend read policies will be added with the React
-application.
+The schema stores leagues, season identifiers, contests, entries, players,
+rosters, raw import payloads, and manual result overrides. Each season has a
+required `name`. Contest imports verify that it matches the fetched result's
+top-level `season` property and persist that value. PostgreSQL views calculate
+effective contest outcomes and season standings, including `season_name`. Row
+Level Security is enabled without public policies; frontend read policies will
+be added with the React application.
 
 Set the season explicitly in `.env` so contests cannot be imported into the
 wrong year's standings:
 
 ```dotenv
 SEASON_YEAR=2026
+SEASON_NAME=malamoneyball 2026
 ```
 
-The participant, contest import, and standings commands can override that value
-with `--season YYYY`.
+The participant, contest import, and standings commands can override the year
+with `--season YYYY`. Participant registration can override the name with
+`--season-name NAME`.
 
 ### Configure season membership
 
@@ -129,6 +135,7 @@ contest import. Add each participant using their stable DraftKings `userKey`:
 ```bash
 npm run participant:add -- \
   --season 2026 \
+  --season-name "malamoneyball 2026" \
   --user-key 4034388 \
   --user-name malamoney
 ```
@@ -162,8 +169,9 @@ The output contains `userKey`, `participantName`, `wins`, `losses`, `ties`, and
 the selected season's contests. Starting a new season and registering its
 participants produces zeroed standings without affecting prior seasons.
 
-For example, begin 2027 by registering its participants with `--season 2027`,
-then set `SEASON_YEAR=2027` before importing that season's contests.
+For example, begin 2027 by registering its participants with `--season 2027`
+and `--season-name "malamoneyball 2027"`, then update both `SEASON_YEAR` and
+`SEASON_NAME` before importing that season's contests.
 
 ### Enter a manual result
 

@@ -6,11 +6,12 @@ VALUES ('__verification__', 'Database verification');
 INSERT INTO public.seasons (
   league_id,
   year,
+  name,
   expected_participant_count
 )
 VALUES
-  ('__verification__', 2026, 14),
-  ('__verification__', 2027, 14);
+  ('__verification__', 2026, 'Verification 2026', 14),
+  ('__verification__', 2027, 'Verification 2027', 14);
 
 INSERT INTO public.participants (user_key, current_user_name)
 SELECT
@@ -238,6 +239,16 @@ BEGIN
       AND total_points = 0
   ) <> 14 THEN
     RAISE EXCEPTION 'A new season should begin with zeroed standings';
+  END IF;
+
+  IF (
+    SELECT count(*)
+    FROM public.season_standings
+    WHERE league_id = '__verification__'
+      AND season_year = 2026
+      AND season_name = 'Verification 2026'
+  ) <> 14 THEN
+    RAISE EXCEPTION 'Season standings should expose the season identifier';
   END IF;
 
   IF (

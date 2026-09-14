@@ -24,6 +24,10 @@ interface DraftableDetails {
   playerImage: string;
 }
 
+export function deriveSeasonName(contestName: string): string {
+  return contestName.replace(/\s+week\s+\d+\s*$/i, "").trim();
+}
+
 export interface DraftKingsClientOptions {
   cookie: string;
   leagueId?: string;
@@ -151,7 +155,7 @@ async function fetchRoster(
 
 /**
  * Fetches the newest historical contest for a league, then returns its key,
- * name, draft group ID, and leaderboard.
+ * name, derived season name, draft group ID, and leaderboard.
  */
 export async function getLatestContestLeaderboard(
   options: DraftKingsClientOptions,
@@ -238,6 +242,7 @@ export async function getLatestContestLeaderboard(
     {
       contestKey: contest.contestKey,
       name: contest.name,
+      season: deriveSeasonName(contest.name),
       draftGroupId,
       leaderboard,
     },

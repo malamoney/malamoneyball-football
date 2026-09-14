@@ -86,6 +86,7 @@ export const LeaderboardEntrySchema = z.strictObject({
 export const ContestLeaderboardSchema = z.strictObject({
   contestKey: z.string(),
   name: z.string(),
+  season: z.string().min(1),
   draftGroupId: nonnegativeInteger,
   leaderboard: z.array(LeaderboardEntrySchema),
 });
