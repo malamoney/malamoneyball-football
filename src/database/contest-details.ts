@@ -8,6 +8,7 @@ interface ContestRow {
   contest_key: string;
   name: string;
   fetched_at: Date;
+  contest_start_time: Date | null;
 }
 
 interface ContestResultRow {
@@ -47,6 +48,7 @@ export interface ContestDetails {
   contestKey: string;
   name: string;
   fetchedAt: string;
+  contestStartTime: string | null;
   results: ContestDetailResult[];
 }
 
@@ -57,7 +59,7 @@ export async function getContestDetails(
   contestKey: string,
 ): Promise<ContestDetails | null> {
   const contestRows = await sql<ContestRow[]>`
-    SELECT c.contest_key, c.name, c.fetched_at
+    SELECT c.contest_key, c.name, c.fetched_at, c.contest_start_time
     FROM public.contests c
     JOIN public.seasons s ON s.season_id = c.season_id
     WHERE c.contest_key = ${contestKey}
@@ -129,6 +131,7 @@ export async function getContestDetails(
     contestKey: contest.contest_key,
     name: contest.name,
     fetchedAt: contest.fetched_at.toISOString(),
+    contestStartTime: contest.contest_start_time?.toISOString() ?? null,
     results: resultRows.map((row) => ({
       userKey: row.user_key,
       participantName: row.participant_name,

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  ContestsResponseSchema,
   ContestDetailsResponseSchema,
   StandingsEntrySchema,
   TeamDetailsResponseSchema,
@@ -33,6 +34,24 @@ const standingsEntry = {
 
 test("validates the complete standings metrics", () => {
   assert.deepEqual(StandingsEntrySchema.parse(standingsEntry), standingsEntry);
+});
+
+test("validates contest history with its scheduled contest date", () => {
+  const response = {
+    season: "malamoneyball 2026",
+    lastUpdated,
+    contests: [
+      {
+        contestKey: "195471290",
+        name: "malamoneyball 2026 week 1",
+        fetchedAt: "2026-09-15T03:00:00.000Z",
+        contestStartTime: "2026-09-13T17:00:00.000Z",
+        participantCount: 14,
+      },
+    ],
+  };
+
+  assert.deepEqual(ContestsResponseSchema.parse(response), response);
 });
 
 test("accepts an empty-season streak", () => {
@@ -113,6 +132,7 @@ test("validates ordered contest details with expandable roster data", () => {
       contestKey: "195471290",
       name: "malamoneyball 2026 week 1",
       fetchedAt: "2026-09-13T21:00:00.000Z",
+      contestStartTime: "2026-09-13T17:00:00.000Z",
       results: [
         {
           userKey: "4034388",
@@ -139,6 +159,7 @@ test("accepts a contest result for a missing lineup", () => {
       contestKey: "195471290",
       name: "malamoneyball 2026 week 1",
       fetchedAt: "2026-09-13T21:00:00.000Z",
+      contestStartTime: "2026-09-13T17:00:00.000Z",
       results: [
         {
           userKey: "560855",

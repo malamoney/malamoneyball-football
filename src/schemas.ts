@@ -5,6 +5,12 @@ const finiteNumber = z.number().refine(Number.isFinite, {
 });
 
 const nonnegativeInteger = z.number().int().nonnegative();
+const lineupIdentifier = z.number().int().min(-1);
+
+const dateTimeString = z.string().min(1).refine(
+  (value) => !Number.isNaN(Date.parse(value)),
+  { error: "Expected a valid date-time string" },
+);
 
 export const DraftKingsContestsResponseSchema = z.object({
   contests: z.array(
@@ -12,6 +18,7 @@ export const DraftKingsContestsResponseSchema = z.object({
       contestKey: z.string().min(1),
       name: z.string().min(1),
       draftGroupId: nonnegativeInteger,
+      contestStartTime: dateTimeString,
     }),
   ).min(1, "No historical contest was returned"),
 });
@@ -20,7 +27,7 @@ export const DraftKingsLeaderboardResponseSchema = z.object({
   leaderBoard: z.array(
     z.object({
       entryKey: z.string().min(1),
-      lineupId: nonnegativeInteger,
+      lineupId: lineupIdentifier,
       userName: z.string().min(1),
       userKey: z.string().min(1),
       rank: nonnegativeInteger,
@@ -75,7 +82,7 @@ export const RosterPlayerSchema = z.strictObject({
 
 export const LeaderboardEntrySchema = z.strictObject({
   entryKey: z.string(),
-  lineupId: nonnegativeInteger,
+  lineupId: lineupIdentifier,
   userName: z.string(),
   userKey: z.string(),
   rank: nonnegativeInteger,
@@ -88,6 +95,7 @@ export const ContestLeaderboardSchema = z.strictObject({
   name: z.string(),
   season: z.string().min(1),
   draftGroupId: nonnegativeInteger,
+  contestStartTime: dateTimeString,
   leaderboard: z.array(LeaderboardEntrySchema),
 });
 
