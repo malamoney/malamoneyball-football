@@ -6,6 +6,8 @@ import {
   rowSortingFeature,
   tableFeatures,
   useTable,
+  type OnChangeFn,
+  type SortingState,
 } from "@tanstack/react-table";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { useState } from "react";
@@ -100,11 +102,23 @@ const columns = columnHelper.columns([
   }),
 ]);
 
-export function StandingsTable({ data }: { data: StandingsEntry[] }) {
+interface StandingsTableProps {
+  data: StandingsEntry[];
+  sorting: SortingState;
+  onSortingChange: OnChangeFn<SortingState>;
+}
+
+export function StandingsTable({
+  data,
+  sorting,
+  onSortingChange,
+}: StandingsTableProps) {
   const table = useTable({
     features,
     columns,
     data,
+    state: { sorting },
+    onSortingChange,
   });
 
   return (

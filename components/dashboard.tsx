@@ -1,15 +1,17 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import type { SortingState } from "@tanstack/react-table";
 import {
   CalendarDays,
   ChevronRight,
   CircleCheck,
-  RefreshCw,
+  RotateCcw,
   ShieldCheck,
   Trophy,
   Users,
 } from "lucide-react";
+import { useState } from "react";
 
 import { LeagueHeader } from "@/components/league-header";
 import { SectionHeading } from "@/components/section-heading";
@@ -27,6 +29,11 @@ import {
   StandingsResponseSchema,
   type ContestSummary,
 } from "@/src/web-schemas";
+
+const defaultStandingsSorting: SortingState = [
+  { id: "wins", desc: true },
+  { id: "totalPoints", desc: true },
+];
 
 async function fetchJson(url: string): Promise<unknown> {
   const response = await fetch(url, { cache: "no-store" });
@@ -78,6 +85,9 @@ function ContestRow({ contest }: { contest: ContestSummary }) {
 }
 
 export function Dashboard({ seasonName }: { seasonName: string }) {
+  const [standingsSorting, setStandingsSorting] = useState<SortingState>(
+    defaultStandingsSorting,
+  );
   const encodedSeason = encodeURIComponent(seasonName);
   const standingsQuery = useQuery({
     queryKey: ["standings", seasonName],
@@ -94,8 +104,8 @@ export function Dashboard({ seasonName }: { seasonName: string }) {
       ),
   });
 
-  const refresh = () => {
-    void Promise.all([standingsQuery.refetch(), contestsQuery.refetch()]);
+  const resetStandingsSorting = () => {
+    setStandingsSorting(defaultStandingsSorting.map((sort) => ({ ...sort })));
   };
 
   return (
@@ -118,14 +128,12 @@ export function Dashboard({ seasonName }: { seasonName: string }) {
               </div>
               <Button
                 variant="outline"
-                onClick={refresh}
-                disabled={standingsQuery.isFetching || contestsQuery.isFetching}
+                onClick={resetStandingsSorting}
                 className="shrink-0"
+                aria-label="Reset standings to the default order"
               >
-                <RefreshCw
-                  className={`size-4 ${standingsQuery.isFetching || contestsQuery.isFetching ? "animate-spin" : ""}`}
-                />
-                <span className="hidden sm:inline">Refresh</span>
+                <RotateCcw className="size-4" aria-hidden="true" />
+                <span className="hidden sm:inline">Default view</span>
               </Button>
             </CardHeader>
 
@@ -161,7 +169,11 @@ export function Dashboard({ seasonName }: { seasonName: string }) {
                 <p className="mt-1 text-sm text-slate-500">Check the database connection and try again.</p>
               </div>
             ) : (
-              <StandingsTable data={standingsQuery.data.standings} />
+              <StandingsTable
+                data={standingsQuery.data.standings}
+                sorting={standingsSorting}
+                onSortingChange={setStandingsSorting}
+              />
             )}
           </Card>
         </section>

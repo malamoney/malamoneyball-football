@@ -45,7 +45,6 @@ export async function getSeasonStandings(
       AND season_name = ${seasonName}
     ORDER BY
       wins DESC,
-      ties DESC,
       total_points DESC,
       participant_name
   `;
