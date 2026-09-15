@@ -7,6 +7,9 @@ export const StandingsEntrySchema = z.strictObject({
   losses: z.number().int().nonnegative(),
   ties: z.number().int().nonnegative(),
   totalPoints: z.number().finite(),
+  highScore: z.number().finite(),
+  averageScore: z.number().finite(),
+  streak: z.string().regex(/^(?:0|[1-9]\d*[WLT])$/),
 });
 
 export const StandingsResponseSchema = z.strictObject({

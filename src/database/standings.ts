@@ -7,6 +7,9 @@ interface StandingsRow {
   losses: number;
   ties: number;
   total_points: string;
+  high_score: string;
+  average_score: string;
+  streak: string;
 }
 
 export interface StandingsEntry {
@@ -16,6 +19,9 @@ export interface StandingsEntry {
   losses: number;
   ties: number;
   totalPoints: number;
+  highScore: number;
+  averageScore: number;
+  streak: string;
 }
 
 export async function getSeasonStandings(
@@ -30,7 +36,10 @@ export async function getSeasonStandings(
       wins,
       losses,
       ties,
-      total_points
+      total_points,
+      high_score,
+      average_score,
+      streak
     FROM public.season_standings
     WHERE league_id = ${leagueId}
       AND season_name = ${seasonName}
@@ -48,5 +57,8 @@ export async function getSeasonStandings(
     losses: row.losses,
     ties: row.ties,
     totalPoints: Number(row.total_points),
+    highScore: Number(row.high_score),
+    averageScore: Number(row.average_score),
+    streak: row.streak,
   }));
 }
