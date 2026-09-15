@@ -2,9 +2,20 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  ContestDetailsResponseSchema,
   StandingsEntrySchema,
   TeamDetailsResponseSchema,
 } from "../src/web-schemas.js";
+
+const rosterPlayer = {
+  position: "QB",
+  playerImage: "https://example.com/player.png",
+  playerName: "Example Player",
+  salary: 6500,
+  percentDrafted: 12.5,
+  statsDescription: "24/35, 285 YDS, 2 TD",
+  fantasyPoints: 24.6,
+};
 
 const standingsEntry = {
   userKey: "4034388",
@@ -54,17 +65,7 @@ test("validates team details with contest roster data", () => {
           outcome: "WIN",
           resultSource: "draftkings",
           isOverridden: false,
-          roster: [
-            {
-              position: "QB",
-              playerImage: "https://example.com/player.png",
-              playerName: "Example Player",
-              salary: 6500,
-              percentDrafted: 12.5,
-              statsDescription: "24/35, 285 YDS, 2 TD",
-              fantasyPoints: 24.6,
-            },
-          ],
+          roster: [rosterPlayer],
         },
       ],
     },
@@ -98,4 +99,54 @@ test("accepts a missing entry without a roster", () => {
   });
 
   assert.equal(parsed.team.contests[0]?.roster.length, 0);
+});
+
+test("validates ordered contest details with expandable roster data", () => {
+  const response = {
+    season: "malamoneyball 2026",
+    contest: {
+      contestKey: "195471290",
+      name: "malamoneyball 2026 week 1",
+      fetchedAt: "2026-09-13T21:00:00.000Z",
+      results: [
+        {
+          userKey: "4034388",
+          participantName: "malamoney",
+          place: 1,
+          fantasyPoints: 167.1,
+          outcome: "WIN",
+          resultSource: "draftkings",
+          isOverridden: false,
+          roster: [rosterPlayer],
+        },
+      ],
+    },
+  };
+
+  assert.deepEqual(ContestDetailsResponseSchema.parse(response), response);
+});
+
+test("accepts a contest result for a missing lineup", () => {
+  const parsed = ContestDetailsResponseSchema.parse({
+    season: "malamoneyball 2026",
+    contest: {
+      contestKey: "195471290",
+      name: "malamoneyball 2026 week 1",
+      fetchedAt: "2026-09-13T21:00:00.000Z",
+      results: [
+        {
+          userKey: "560855",
+          participantName: "bdog_10",
+          place: 14,
+          fantasyPoints: 0,
+          outcome: "LOSS",
+          resultSource: "missing_default",
+          isOverridden: false,
+          roster: [],
+        },
+      ],
+    },
+  });
+
+  assert.equal(parsed.contest.results[0]?.roster.length, 0);
 });
