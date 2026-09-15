@@ -110,6 +110,11 @@ function RosterPlayer({ player }: { player: TeamRosterPlayer }) {
         <p className="mt-0.5 text-[11px] text-slate-500">
           {formatSalary(player.salary)} · {formatPercent(player.percentDrafted)} drafted
         </p>
+        {player.statsDescription ? (
+          <p className="mt-1 truncate text-[10px] text-slate-400" title={player.statsDescription}>
+            {player.statsDescription}
+          </p>
+        ) : null}
       </div>
       <div className="text-right">
         <p className="text-sm font-bold tabular-nums text-slate-900">

@@ -61,6 +61,7 @@ test("validates team details with contest roster data", () => {
               playerName: "Example Player",
               salary: 6500,
               percentDrafted: 12.5,
+              statsDescription: "24/35, 285 YDS, 2 TD",
               fantasyPoints: 24.6,
             },
           ],

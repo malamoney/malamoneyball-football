@@ -23,6 +23,7 @@ interface RosterRow {
   player_name: string;
   salary: number;
   percent_drafted: string;
+  stats_description: string;
   fantasy_points: string;
 }
 
@@ -32,6 +33,7 @@ export interface TeamRosterPlayer {
   playerName: string;
   salary: number;
   percentDrafted: number;
+  statsDescription: string;
   fantasyPoints: number;
 }
 
@@ -107,6 +109,7 @@ export async function getTeamDetails(
         cp.name AS player_name,
         cp.salary,
         cp.percent_drafted,
+        cp.stats_description,
         cp.fantasy_points
       FROM public.contest_entries ce
       JOIN public.contests c ON c.contest_key = ce.contest_key
@@ -133,6 +136,7 @@ export async function getTeamDetails(
       playerName: row.player_name,
       salary: row.salary,
       percentDrafted: Number(row.percent_drafted),
+      statsDescription: row.stats_description,
       fantasyPoints: Number(row.fantasy_points),
     });
     rostersByContest.set(row.contest_key, roster);

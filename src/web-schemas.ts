@@ -35,6 +35,7 @@ export const TeamRosterPlayerSchema = z.strictObject({
   playerName: z.string().min(1),
   salary: z.number().int().nonnegative(),
   percentDrafted: z.number().min(0).max(100),
+  statsDescription: z.string(),
   fantasyPoints: z.number().finite(),
 });
 
