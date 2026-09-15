@@ -100,7 +100,7 @@ export function Dashboard({ seasonName }: { seasonName: string }) {
 
   return (
     <div id="top" className="page-backdrop min-h-screen px-3 py-3 sm:px-6 sm:py-6">
-      <main className="dashboard-shell mx-auto min-h-[calc(100vh-48px)] max-w-[1420px] rounded-[28px] border border-white/70 bg-[#e9eef2] p-4 shadow-[0_22px_80px_rgba(15,23,42,0.14)] sm:p-7">
+      <main className="dashboard-shell mx-auto min-h-[calc(100vh-48px)] max-w-[1800px] rounded-[28px] border border-white/70 bg-[#e9eef2] p-4 shadow-[0_22px_80px_rgba(15,23,42,0.14)] sm:p-7">
         <LeagueHeader seasonName={seasonName} />
 
         <section id="standings" className="scroll-mt-6 pt-7 sm:pt-9">
