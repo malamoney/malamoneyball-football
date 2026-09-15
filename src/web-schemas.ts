@@ -14,6 +14,7 @@ export const StandingsEntrySchema = z.strictObject({
 
 export const StandingsResponseSchema = z.strictObject({
   season: z.string().min(1),
+  lastUpdated: z.iso.datetime(),
   standings: z.array(StandingsEntrySchema),
 });
 
@@ -26,6 +27,7 @@ export const ContestSummarySchema = z.strictObject({
 
 export const ContestsResponseSchema = z.strictObject({
   season: z.string().min(1),
+  lastUpdated: z.iso.datetime(),
   contests: z.array(ContestSummarySchema),
 });
 
@@ -60,6 +62,7 @@ export const TeamDetailsSchema = StandingsEntrySchema.extend({
 
 export const TeamDetailsResponseSchema = z.strictObject({
   season: z.string().min(1),
+  lastUpdated: z.iso.datetime(),
   team: TeamDetailsSchema,
 });
 
@@ -83,6 +86,7 @@ export const ContestDetailsSchema = z.strictObject({
 
 export const ContestDetailsResponseSchema = z.strictObject({
   season: z.string().min(1),
+  lastUpdated: z.iso.datetime(),
   contest: ContestDetailsSchema,
 });
 

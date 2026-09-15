@@ -51,5 +51,10 @@ export async function addSeasonParticipant(
       VALUES (${seasonId}, ${input.userKey}, true)
       ON CONFLICT (season_id, user_key) DO UPDATE SET active = true
     `;
+    await transaction`
+      UPDATE public.seasons
+      SET updated_at = clock_timestamp()
+      WHERE season_id = ${seasonId}
+    `;
   });
 }

@@ -24,7 +24,7 @@ import {
 } from "@/src/web-schemas";
 
 async function fetchJson(url: string): Promise<unknown> {
-  const response = await fetch(url, { cache: "no-store" });
+  const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`Request failed with status ${response.status}`);
   }

@@ -294,6 +294,12 @@ export async function importContestResults(
       )
     `;
 
+    await transaction`
+      UPDATE public.seasons
+      SET updated_at = clock_timestamp()
+      WHERE season_id = ${seasonId}
+    `;
+
     return {
       contestKey: result.contestKey,
       season: result.season,

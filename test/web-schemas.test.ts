@@ -17,6 +17,8 @@ const rosterPlayer = {
   fantasyPoints: 24.6,
 };
 
+const lastUpdated = "2026-09-14T21:00:00.000Z";
+
 const standingsEntry = {
   userKey: "4034388",
   participantName: "malamoney",
@@ -50,6 +52,7 @@ test("rejects a malformed standings streak", () => {
 test("validates team details with contest roster data", () => {
   const response = {
     season: "malamoneyball 2026",
+    lastUpdated,
     team: {
       ...standingsEntry,
       standingPlace: 1,
@@ -77,6 +80,7 @@ test("validates team details with contest roster data", () => {
 test("accepts a missing entry without a roster", () => {
   const parsed = TeamDetailsResponseSchema.parse({
     season: "malamoneyball 2026",
+    lastUpdated,
     team: {
       ...standingsEntry,
       standingPlace: 14,
@@ -104,6 +108,7 @@ test("accepts a missing entry without a roster", () => {
 test("validates ordered contest details with expandable roster data", () => {
   const response = {
     season: "malamoneyball 2026",
+    lastUpdated,
     contest: {
       contestKey: "195471290",
       name: "malamoneyball 2026 week 1",
@@ -129,6 +134,7 @@ test("validates ordered contest details with expandable roster data", () => {
 test("accepts a contest result for a missing lineup", () => {
   const parsed = ContestDetailsResponseSchema.parse({
     season: "malamoneyball 2026",
+    lastUpdated,
     contest: {
       contestKey: "195471290",
       name: "malamoneyball 2026 week 1",
