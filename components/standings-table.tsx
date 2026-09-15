@@ -10,8 +10,9 @@ import {
   type SortingState,
 } from "@tanstack/react-table";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
-import { useState } from "react";
+import Link from "next/link";
 
+import { TeamAvatar } from "@/components/team-avatar";
 import {
   Table,
   TableBody,
@@ -29,40 +30,21 @@ const features = tableFeatures({
 
 const columnHelper = createColumnHelper<typeof features, StandingsEntry>();
 
-function TeamAvatar({ userName }: { userName: string }) {
-  const [imageFailed, setImageFailed] = useState(false);
-
-  if (imageFailed) {
-    return (
-      <span className="grid size-9 shrink-0 place-items-center rounded-full bg-violet-50 text-xs font-bold uppercase text-violet-700 ring-1 ring-violet-100">
-        {userName.slice(0, 2)}
-      </span>
-    );
-  }
-
-  return (
-    <span className="size-9 shrink-0 overflow-hidden rounded-full bg-violet-50 ring-1 ring-violet-100">
-      <img
-        src={`https://api.draftkings.com/user/images/Small/${encodeURIComponent(userName)}.jpeg`}
-        alt=""
-        className="size-full object-cover"
-        onError={() => setImageFailed(true)}
-        referrerPolicy="no-referrer"
-      />
-    </span>
-  );
-}
-
 const columns = columnHelper.columns([
   columnHelper.accessor("participantName", {
     header: "Team",
-    cell: ({ getValue }) => {
+    cell: ({ getValue, row }) => {
       const name = getValue();
       return (
-        <div className="flex min-w-48 items-center gap-3">
+        <Link
+          href={`/teams/${encodeURIComponent(row.original.userKey)}`}
+          className="group flex min-w-48 items-center gap-3 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-4"
+        >
           <TeamAvatar userName={name} />
-          <span className="font-semibold text-slate-900">{name}</span>
-        </div>
+          <span className="font-semibold text-slate-900 underline-offset-4 transition-colors group-hover:text-violet-700 group-hover:underline">
+            {name}
+          </span>
+        </Link>
       );
     },
   }),

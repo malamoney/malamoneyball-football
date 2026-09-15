@@ -29,7 +29,45 @@ export const ContestsResponseSchema = z.strictObject({
   contests: z.array(ContestSummarySchema),
 });
 
+export const TeamRosterPlayerSchema = z.strictObject({
+  position: z.string().min(1),
+  playerImage: z.string(),
+  playerName: z.string().min(1),
+  salary: z.number().int().nonnegative(),
+  percentDrafted: z.number().min(0).max(100),
+  statsDescription: z.string(),
+  fantasyPoints: z.number().finite(),
+});
+
+export const TeamContestResultSchema = z.strictObject({
+  contestKey: z.string().min(1),
+  name: z.string().min(1),
+  fetchedAt: z.iso.datetime(),
+  fantasyPoints: z.number().finite(),
+  place: z.number().int().positive(),
+  outcome: z.enum(["WIN", "LOSS", "TIE"]),
+  resultSource: z.enum(["draftkings", "missing_default"]),
+  isOverridden: z.boolean(),
+  roster: z.array(TeamRosterPlayerSchema),
+});
+
+export const TeamDetailsSchema = StandingsEntrySchema.extend({
+  standingPlace: z.number().int().positive(),
+  winPercentage: z.number().min(0).max(100),
+  firstPlaceContests: z.number().int().nonnegative(),
+  contests: z.array(TeamContestResultSchema),
+});
+
+export const TeamDetailsResponseSchema = z.strictObject({
+  season: z.string().min(1),
+  team: TeamDetailsSchema,
+});
+
 export type StandingsEntry = z.infer<typeof StandingsEntrySchema>;
 export type StandingsResponse = z.infer<typeof StandingsResponseSchema>;
 export type ContestSummary = z.infer<typeof ContestSummarySchema>;
 export type ContestsResponse = z.infer<typeof ContestsResponseSchema>;
+export type TeamRosterPlayer = z.infer<typeof TeamRosterPlayerSchema>;
+export type TeamContestResult = z.infer<typeof TeamContestResultSchema>;
+export type TeamDetails = z.infer<typeof TeamDetailsSchema>;
+export type TeamDetailsResponse = z.infer<typeof TeamDetailsResponseSchema>;
