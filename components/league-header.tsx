@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import { CircleUserRound } from "lucide-react";
 
 export function LeagueHeader({
   seasonName,
@@ -23,13 +22,8 @@ export function LeagueHeader({
         />
       </Link>
 
-      <div className="flex items-center gap-2 sm:gap-3">
-        <div className="hidden rounded-full bg-gradient-to-r from-violet-100 to-sky-100 px-4 py-2 text-xs font-bold text-violet-800 sm:block">
-          {seasonName}
-        </div>
-        <div className="grid size-10 place-items-center rounded-full bg-slate-950 text-white">
-          <CircleUserRound className="size-5" aria-hidden="true" />
-        </div>
+      <div className="hidden rounded-full bg-gradient-to-r from-violet-100 to-sky-100 px-4 py-2 text-xs font-bold text-violet-800 sm:block">
+        {seasonName}
       </div>
     </header>
   );
