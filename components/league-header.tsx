@@ -1,7 +1,5 @@
 import Image from "next/image";
-import { CircleUserRound, Settings2 } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
+import { CircleUserRound } from "lucide-react";
 
 export function LeagueHeader({ seasonName }: { seasonName: string }) {
   return (
@@ -10,7 +8,7 @@ export function LeagueHeader({ seasonName }: { seasonName: string }) {
         <Image
           src="/malamoneyball-logo.png"
           width={2172}
-          height={300}
+          height={724}
           priority
           alt="Malamoneyball"
           className="h-auto w-[168px] sm:w-[214px]"
@@ -18,9 +16,6 @@ export function LeagueHeader({ seasonName }: { seasonName: string }) {
       </a>
 
       <div className="flex items-center gap-2 sm:gap-3">
-        <Button variant="ghost" size="icon" aria-label="Dashboard settings">
-          <Settings2 className="size-5" />
-        </Button>
         <div className="hidden rounded-full bg-gradient-to-r from-violet-100 to-sky-100 px-4 py-2 text-xs font-bold text-violet-800 sm:block">
           {seasonName}
         </div>
