@@ -155,7 +155,7 @@ async function fetchRoster(
 
 /**
  * Fetches the newest historical contest for a league, then returns its key,
- * name, derived season name, draft group ID, and leaderboard.
+ * name, derived season name, draft group ID, start time, and leaderboard.
  */
 export async function getLatestContestLeaderboard(
   options: DraftKingsClientOptions,
@@ -244,6 +244,7 @@ export async function getLatestContestLeaderboard(
       name: contest.name,
       season: deriveSeasonName(contest.name),
       draftGroupId,
+      contestStartTime: contest.contestStartTime,
       leaderboard,
     },
     "normalized contest leaderboard",

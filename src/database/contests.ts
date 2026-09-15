@@ -4,6 +4,7 @@ interface ContestSummaryRow {
   contest_key: string;
   name: string;
   fetched_at: Date;
+  contest_start_time: Date | null;
   participant_count: number;
 }
 
@@ -11,6 +12,7 @@ export interface ContestSummary {
   contestKey: string;
   name: string;
   fetchedAt: string;
+  contestStartTime: string | null;
   participantCount: number;
 }
 
@@ -24,20 +26,22 @@ export async function getSeasonContests(
       c.contest_key,
       c.name,
       c.fetched_at,
+      c.contest_start_time,
       count(ce.contest_entry_id)::INTEGER AS participant_count
     FROM public.contests c
     JOIN public.seasons s ON s.season_id = c.season_id
     LEFT JOIN public.contest_entries ce ON ce.contest_key = c.contest_key
     WHERE s.league_id = ${leagueId}
       AND s.name = ${seasonName}
-    GROUP BY c.contest_key, c.name, c.fetched_at
-    ORDER BY c.fetched_at DESC, c.contest_key DESC
+    GROUP BY c.contest_key, c.name, c.fetched_at, c.contest_start_time
+    ORDER BY COALESCE(c.contest_start_time, c.fetched_at) DESC, c.contest_key DESC
   `;
 
   return rows.map((row) => ({
     contestKey: row.contest_key,
     name: row.name,
     fetchedAt: row.fetched_at.toISOString(),
+    contestStartTime: row.contest_start_time?.toISOString() ?? null,
     participantCount: row.participant_count,
   }));
 }

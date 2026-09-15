@@ -45,9 +45,9 @@ DK_COOKIE='jwe=...; iv=...;' npm start
 The command performs these calls in order:
 
 1. Requests the latest historical contest for league `uyqc2yy8`.
-2. Extracts its `contestKey`, `name`, and `draftGroupId`, derives `season` by
-   removing the trailing `week <number>` from the name, then requests that
-   contest's leaderboard.
+2. Extracts its `contestKey`, `name`, `draftGroupId`, and `contestStartTime`,
+   derives `season` by removing the trailing `week <number>` from the name,
+   then requests that contest's leaderboard.
 3. Requests the draft group's player data once to build a salary and image
    lookup by `draftableId`.
 4. Requests each participant's roster using the contest `draftGroupId` and the
@@ -62,6 +62,7 @@ standard output, so it can be redirected to a file if desired:
   "name": "malamoneyball 2026 week 1",
   "season": "malamoneyball 2026",
   "draftGroupId": 151307,
+  "contestStartTime": "2026-09-13T17:00:00.0000000Z",
   "leaderboard": [
     {
       "entryKey": "5253217266",

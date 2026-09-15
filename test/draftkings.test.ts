@@ -30,6 +30,7 @@ test("returns the latest contest metadata and its leaderboard", async () => {
           contestKey: "195471290",
           name: "malamoneyball 2026 week 1",
           draftGroupId: 151307,
+          contestStartTime: "2026-09-13T17:00:00.0000000Z",
         },
       ],
     },
@@ -38,7 +39,7 @@ test("returns the latest contest metadata and its leaderboard", async () => {
         {
           contestKey: "195471290",
           entryKey: "5253217266",
-          lineupId: 5687315610,
+          lineupId: -1,
           userName: "Dbmiller77",
           userKey: "6842145",
           rank: 1,
@@ -100,10 +101,11 @@ test("returns the latest contest metadata and its leaderboard", async () => {
     name: "malamoneyball 2026 week 1",
     season: "malamoneyball 2026",
     draftGroupId: 151307,
+    contestStartTime: "2026-09-13T17:00:00.0000000Z",
     leaderboard: [
       {
         entryKey: "5253217266",
-        lineupId: 5687315610,
+        lineupId: -1,
         userName: "Dbmiller77",
         userKey: "6842145",
         rank: 1,
@@ -191,6 +193,27 @@ test("fails clearly when the latest contest has no draftGroupId", async () => {
       fetch: fetchMock,
     }),
     /contests\.0\.draftGroupId: Invalid input: expected number/,
+  );
+});
+
+test("fails clearly when the latest contest has no start time", async () => {
+  const fetchMock: typeof fetch = async () =>
+    Response.json({
+      contests: [
+        {
+          contestKey: "195471290",
+          name: "malamoneyball 2026 week 1",
+          draftGroupId: 151307,
+        },
+      ],
+    });
+
+  await assert.rejects(
+    getLatestContestLeaderboard({
+      cookie: "jwe=test; iv=test;",
+      fetch: fetchMock,
+    }),
+    /contests\.0\.contestStartTime: Invalid input: expected string/,
   );
 });
 

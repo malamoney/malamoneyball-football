@@ -149,6 +149,7 @@ export async function importContestResults(
         season_id,
         name,
         draft_group_id,
+        contest_start_time,
         fetched_at
       )
       VALUES (
@@ -156,6 +157,7 @@ export async function importContestResults(
         ${seasonId},
         ${result.name},
         ${result.draftGroupId},
+        ${result.contestStartTime},
         ${fetchedAt}
       )
       ON CONFLICT (contest_key) DO UPDATE
@@ -163,6 +165,7 @@ export async function importContestResults(
         season_id = EXCLUDED.season_id,
         name = EXCLUDED.name,
         draft_group_id = EXCLUDED.draft_group_id,
+        contest_start_time = EXCLUDED.contest_start_time,
         fetched_at = EXCLUDED.fetched_at
     `;
 

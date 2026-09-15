@@ -6,7 +6,7 @@ interface SeasonCacheRow {
 }
 
 // Increment when the cached API response contract changes.
-const apiCacheVersion = "v1";
+const apiCacheVersion = "v2";
 
 export interface SeasonCacheMetadata {
   etag: string;

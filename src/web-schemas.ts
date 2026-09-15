@@ -22,6 +22,7 @@ export const ContestSummarySchema = z.strictObject({
   contestKey: z.string().min(1),
   name: z.string().min(1),
   fetchedAt: z.iso.datetime(),
+  contestStartTime: z.iso.datetime().nullable(),
   participantCount: z.number().int().nonnegative(),
 });
 
@@ -93,6 +94,7 @@ export const ContestDetailsSchema = z.strictObject({
   contestKey: z.string().min(1),
   name: z.string().min(1),
   fetchedAt: z.iso.datetime(),
+  contestStartTime: z.iso.datetime().nullable(),
   results: z.array(ContestDetailResultSchema),
 });
 

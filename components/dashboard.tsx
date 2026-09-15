@@ -48,7 +48,7 @@ async function fetchJson(url: string): Promise<unknown> {
   return response.json() as Promise<unknown>;
 }
 
-function formatImportedAt(value: string): string {
+function formatContestDate(value: string): string {
   return new Intl.DateTimeFormat("en-US", {
     month: "short",
     day: "numeric",
@@ -81,7 +81,9 @@ function ContestRow({ contest }: { contest: ContestSummary }) {
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold text-slate-900">{contest.name}</p>
         <p className="mt-1 text-xs text-slate-500">
-          {contest.participantCount} participants · Imported {formatImportedAt(contest.fetchedAt)}
+          {contest.participantCount} participants · {contest.contestStartTime
+            ? `Contest ${formatContestDate(contest.contestStartTime)}`
+            : "Contest date unavailable"}
         </p>
       </div>
       <span className="hidden rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 ring-1 ring-slate-200 sm:inline-flex">
