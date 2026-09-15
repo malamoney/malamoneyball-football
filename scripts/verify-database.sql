@@ -32,22 +32,29 @@ INSERT INTO public.contests (
   season_id,
   name,
   draft_group_id,
-  fetched_at
+  fetched_at,
+  created_at
 )
 SELECT
   contest_key,
   s.season_id,
   contest_name,
   draft_group_id,
-  now()
+  now() + contest_order * interval '1 minute',
+  now() + contest_order * interval '1 minute'
 FROM public.seasons s
 CROSS JOIN (
   VALUES
-    ('__verification_even__', 'Even field', 1),
-    ('__verification_tie__', 'Even boundary tie', 2),
-    ('__verification_odd__', 'Odd field', 3),
-    ('__verification_override__', 'Manual override', 4)
-) AS verification_contests(contest_key, contest_name, draft_group_id)
+    ('__verification_even__', 'Even field', 1, 1),
+    ('__verification_tie__', 'Even boundary tie', 2, 2),
+    ('__verification_odd__', 'Odd field', 3, 3),
+    ('__verification_override__', 'Manual override', 4, 4)
+) AS verification_contests(
+  contest_key,
+  contest_name,
+  draft_group_id,
+  contest_order
+)
 WHERE s.league_id = '__verification__'
   AND s.name = 'Verification 2026';
 
@@ -236,6 +243,9 @@ BEGIN
       AND losses = 0
       AND ties = 0
       AND total_points = 0
+      AND high_score = 0
+      AND average_score = 0
+      AND streak = '0'
   ) <> 14 THEN
     RAISE EXCEPTION 'A new season should begin with zeroed standings';
   END IF;
@@ -257,6 +267,30 @@ BEGIN
       AND wins + losses + ties > 0
   ) <> 14 THEN
     RAISE EXCEPTION 'The prior season should retain its contest outcomes';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM public.season_standings
+    WHERE league_id = '__verification__'
+      AND season_name = 'Verification 2026'
+      AND user_key = '__verification_user_1'
+      AND high_score = 99
+      AND average_score = 99
+      AND streak = '4W'
+  ) THEN
+    RAISE EXCEPTION 'Standings should calculate high score, average, and win streak';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM public.season_standings
+    WHERE league_id = '__verification__'
+      AND season_name = 'Verification 2026'
+      AND user_key = '__verification_user_13'
+      AND streak = '4L'
+  ) THEN
+    RAISE EXCEPTION 'Standings should calculate the current loss streak';
   END IF;
 END;
 $$;

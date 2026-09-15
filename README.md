@@ -178,9 +178,11 @@ are not overwritten.
 npm run standings -- --season-name "malamoneyball 2026"
 ```
 
-The output contains `userKey`, `participantName`, `wins`, `losses`, `ties`, and
-`totalPoints`. Results are calculated from effective fantasy points across only
-the selected season's contests. Starting a new season and registering its
+The output contains `userKey`, `participantName`, `wins`, `losses`, `ties`,
+`totalPoints`, `highScore`, `averageScore`, and `streak`. Streaks use compact
+current-form notation such as `3W`, `1L`, or `1T`; a participant with no results
+has a streak of `0`. Results are calculated from effective fantasy points across
+only the selected season's contests. Starting a new season and registering its
 participants produces zeroed standings without affecting prior seasons.
 
 For example, begin 2027 by registering its participants with

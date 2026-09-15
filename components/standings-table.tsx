@@ -71,6 +71,33 @@ const columns = columnHelper.columns([
     header: "Total Points",
     cell: ({ getValue }) => getValue().toFixed(2),
   }),
+  columnHelper.accessor("highScore", {
+    header: "High Score",
+    cell: ({ getValue }) => getValue().toFixed(2),
+  }),
+  columnHelper.accessor("averageScore", {
+    header: "Average Score",
+    cell: ({ getValue }) => getValue().toFixed(2),
+  }),
+  columnHelper.accessor("streak", {
+    header: "Streak",
+    cell: ({ getValue }) => {
+      const streak = getValue();
+      const color = streak.endsWith("W")
+        ? "bg-emerald-50 text-emerald-700 ring-emerald-100"
+        : streak.endsWith("L")
+          ? "bg-rose-50 text-rose-700 ring-rose-100"
+          : streak.endsWith("T")
+            ? "bg-amber-50 text-amber-700 ring-amber-100"
+            : "bg-slate-50 text-slate-500 ring-slate-100";
+
+      return (
+        <span className={`inline-flex min-w-10 justify-center rounded-full px-2.5 py-1 text-xs font-bold ring-1 ${color}`}>
+          {streak}
+        </span>
+      );
+    },
+  }),
 ]);
 
 export function StandingsTable({ data }: { data: StandingsEntry[] }) {
@@ -91,7 +118,7 @@ export function StandingsTable({ data }: { data: StandingsEntry[] }) {
                 return (
                   <TableHead
                     key={header.id}
-                    className={header.column.id === "participantName" ? "w-[48%]" : "text-right"}
+                    className={header.column.id === "participantName" ? "w-[34%]" : "text-right"}
                   >
                     {header.isPlaceholder ? null : (
                       <button
