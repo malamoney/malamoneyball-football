@@ -19,6 +19,13 @@ npm run dev
 Then open [http://localhost:3000](http://localhost:3000). The server-side API
 routes use `DATABASE_URL`, `DK_LEAGUE_ID`, and `SEASON_NAME` from `.env`.
 
+Dashboard data stays fresh in TanStack Query for the lifetime of the browser
+tab. API responses are retained by the browser and revalidated with a
+season-level `ETag` after a reload. Unchanged data returns `304 Not Modified`
+without rerunning the standings or roster query or downloading its JSON again.
+Contest imports, manual result changes, and participant registration update the
+season's `updated_at` value, which invalidates all cached data for that season.
+
 ## Setup
 
 Requires Node.js 20 or newer.

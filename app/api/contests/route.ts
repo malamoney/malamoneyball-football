@@ -3,6 +3,10 @@ import * as z from "zod";
 
 import { withDatabase } from "@/src/database/client";
 import { getSeasonContests } from "@/src/database/contests";
+import {
+  loadSeasonCachedResource,
+  seasonCacheHeaders,
+} from "@/src/season-cache";
 import { ContestsResponseSchema } from "@/src/web-schemas";
 
 const querySchema = z.object({
@@ -27,15 +31,29 @@ export async function GET(request: NextRequest) {
 
   try {
     const leagueId = process.env.DK_LEAGUE_ID ?? defaultLeagueId;
-    const contests = await withDatabase((sql) =>
-      getSeasonContests(sql, leagueId, query.data.season)
+    const result = await withDatabase((sql) =>
+      loadSeasonCachedResource(
+        sql,
+        leagueId,
+        query.data.season,
+        request.headers.get("if-none-match"),
+        () => getSeasonContests(sql, leagueId, query.data.season),
+      )
     );
+    if (result.status === "season-not-found") {
+      return NextResponse.json({ error: "Season not found." }, { status: 404 });
+    }
+    const headers = seasonCacheHeaders(result.metadata);
+    if (result.status === "not-modified") {
+      return new NextResponse(null, { status: 304, headers });
+    }
     const response = ContestsResponseSchema.parse({
       season: query.data.season,
-      contests,
+      lastUpdated: result.metadata.lastUpdated,
+      contests: result.data,
     });
 
-    return NextResponse.json(response);
+    return NextResponse.json(response, { headers });
   } catch (error: unknown) {
     console.error("Unable to load contests", error);
     return NextResponse.json(

@@ -2,6 +2,11 @@ import type { DatabaseClient } from "./client.js";
 
 interface ContestEntryId {
   contest_entry_id: number;
+  season_id: number;
+}
+
+interface SeasonId {
+  season_id: number;
 }
 
 export interface ManualOverrideInput {
@@ -27,10 +32,11 @@ export async function setManualOverride(
     Math.round((input.fantasyPoints + Number.EPSILON) * 100) / 100;
   await sql.begin(async (transaction) => {
     const entryRows = await transaction<ContestEntryId[]>`
-      SELECT contest_entry_id
-      FROM public.contest_entries
-      WHERE contest_key = ${input.contestKey}
-        AND user_key = ${input.userKey}
+      SELECT ce.contest_entry_id, c.season_id
+      FROM public.contest_entries ce
+      JOIN public.contests c ON c.contest_key = ce.contest_key
+      WHERE ce.contest_key = ${input.contestKey}
+        AND ce.user_key = ${input.userKey}
       FOR UPDATE
     `;
     const entry = entryRows[0];
@@ -57,6 +63,11 @@ export async function setManualOverride(
         fantasy_points = EXCLUDED.fantasy_points,
         reason = EXCLUDED.reason
     `;
+    await transaction`
+      UPDATE public.seasons
+      SET updated_at = clock_timestamp()
+      WHERE season_id = ${entry.season_id}
+    `;
   });
 }
 
@@ -65,14 +76,26 @@ export async function clearManualOverride(
   contestKey: string,
   userKey: string,
 ): Promise<boolean> {
-  const deleted = await sql`
-    DELETE FROM public.contest_entry_overrides o
-    USING public.contest_entries ce
-    WHERE o.contest_entry_id = ce.contest_entry_id
-      AND ce.contest_key = ${contestKey}
-      AND ce.user_key = ${userKey}
-    RETURNING o.contest_entry_id
-  `;
+  return sql.begin(async (transaction) => {
+    const deleted = await transaction<SeasonId[]>`
+      DELETE FROM public.contest_entry_overrides o
+      USING public.contest_entries ce, public.contests c
+      WHERE o.contest_entry_id = ce.contest_entry_id
+        AND c.contest_key = ce.contest_key
+        AND ce.contest_key = ${contestKey}
+        AND ce.user_key = ${userKey}
+      RETURNING c.season_id
+    `;
+    const result = deleted[0];
+    if (!result) {
+      return false;
+    }
 
-  return deleted.length > 0;
+    await transaction`
+      UPDATE public.seasons
+      SET updated_at = clock_timestamp()
+      WHERE season_id = ${result.season_id}
+    `;
+    return true;
+  });
 }
