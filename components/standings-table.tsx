@@ -8,6 +8,7 @@ import {
   useTable,
 } from "@tanstack/react-table";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
+import { useState } from "react";
 
 import {
   Table,
@@ -25,16 +26,39 @@ const features = tableFeatures({
 });
 
 const columnHelper = createColumnHelper<typeof features, StandingsEntry>();
+
+function TeamAvatar({ userName }: { userName: string }) {
+  const [imageFailed, setImageFailed] = useState(false);
+
+  if (imageFailed) {
+    return (
+      <span className="grid size-9 shrink-0 place-items-center rounded-full bg-violet-50 text-xs font-bold uppercase text-violet-700 ring-1 ring-violet-100">
+        {userName.slice(0, 2)}
+      </span>
+    );
+  }
+
+  return (
+    <span className="size-9 shrink-0 overflow-hidden rounded-full bg-violet-50 ring-1 ring-violet-100">
+      <img
+        src={`https://api.draftkings.com/user/images/Small/${encodeURIComponent(userName)}.jpeg`}
+        alt=""
+        className="size-full object-cover"
+        onError={() => setImageFailed(true)}
+        referrerPolicy="no-referrer"
+      />
+    </span>
+  );
+}
+
 const columns = columnHelper.columns([
   columnHelper.accessor("participantName", {
-    header: "Participant name",
+    header: "Team",
     cell: ({ getValue }) => {
       const name = getValue();
       return (
         <div className="flex min-w-48 items-center gap-3">
-          <span className="grid size-9 shrink-0 place-items-center rounded-full bg-violet-50 text-xs font-bold uppercase text-violet-700 ring-1 ring-violet-100">
-            {name.slice(0, 2)}
-          </span>
+          <TeamAvatar userName={name} />
           <span className="font-semibold text-slate-900">{name}</span>
         </div>
       );
@@ -44,7 +68,7 @@ const columns = columnHelper.columns([
   columnHelper.accessor("losses", { header: "Losses" }),
   columnHelper.accessor("ties", { header: "Ties" }),
   columnHelper.accessor("totalPoints", {
-    header: "Total points",
+    header: "Total Points",
     cell: ({ getValue }) => getValue().toFixed(2),
   }),
 ]);
