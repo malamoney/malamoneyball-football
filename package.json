@@ -4,25 +4,42 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "next build --webpack",
     "contest:import": "node --env-file=.env --import tsx src/import-contest-cli.ts",
     "db:migrate": "node --env-file=.env --import tsx src/migrate-cli.ts",
     "db:verify": "node --env-file=.env --import tsx src/verify-database-cli.ts",
     "getcontestresults": "node --env-file=.env --import tsx src/cli.ts > contest-results.json",
     "participant:add": "node --env-file=.env --import tsx src/add-participant-cli.ts",
     "result:override": "node --env-file=.env --import tsx src/override-result-cli.ts",
-    "start": "node --import tsx src/cli.ts",
+    "dev": "next dev --webpack",
+    "fetch:contest": "node --import tsx src/cli.ts",
+    "start": "next start",
     "standings": "node --env-file=.env --import tsx src/standings-cli.ts",
     "test": "node --import tsx --test test/*.test.ts",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^24.0.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "eslint": "^10.10.0",
+    "eslint-config-next": "^16.3.5",
+    "tailwindcss": "^4.3.3",
     "tsx": "^4.20.0",
     "typescript": "^5.9.0"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.102.8",
+    "@tanstack/react-table": "^9.2.4",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.46.0",
+    "next": "^16.3.5",
     "postgres": "^3.4.9",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "tailwind-merge": "^3.7.0",
     "zod": "^4.6.5"
   }
 }
