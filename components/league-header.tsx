@@ -10,6 +10,7 @@ export function LeagueHeader({ seasonName }: { seasonName: string }) {
           width={2172}
           height={724}
           priority
+          unoptimized
           alt="Malamoneyball"
           className="h-auto w-[168px] sm:w-[214px]"
         />
