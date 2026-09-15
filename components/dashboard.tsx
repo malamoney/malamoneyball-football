@@ -14,7 +14,7 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { LeagueHeader } from "@/components/league-header";
 import { SectionHeading } from "@/components/section-heading";
@@ -39,6 +39,34 @@ const defaultStandingsSorting: SortingState = [
   { id: "wins", desc: true },
   { id: "totalPoints", desc: true },
 ];
+
+const dismissedContestsStorageKey =
+  "malamoneyball.dismissed-upcoming-contests.v1";
+
+function loadDismissedContestIds(): Set<string> {
+  try {
+    const value: unknown = JSON.parse(
+      localStorage.getItem(dismissedContestsStorageKey) ?? "[]",
+    );
+    if (!Array.isArray(value)) {
+      return new Set();
+    }
+
+    return new Set(
+      value.filter((item): item is string => typeof item === "string"),
+    );
+  } catch {
+    return new Set();
+  }
+}
+
+function storeDismissedContestIds(ids: ReadonlySet<string>): void {
+  try {
+    localStorage.setItem(dismissedContestsStorageKey, JSON.stringify([...ids]));
+  } catch {
+    // The alert still dismisses for this page view when storage is unavailable.
+  }
+}
 
 async function fetchJson(url: string): Promise<unknown> {
   const response = await fetch(url);
@@ -94,7 +122,13 @@ function ContestRow({ contest }: { contest: ContestSummary }) {
   );
 }
 
-function UpcomingContestAlert({ contest }: { contest: UpcomingContest }) {
+function UpcomingContestAlert({
+  contest,
+  onDismiss,
+}: {
+  contest: UpcomingContest;
+  onDismiss: () => void;
+}) {
   return (
     <div className="flex flex-col gap-4 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-amber-950 shadow-sm sm:flex-row sm:items-center">
       <div className="flex min-w-0 flex-1 items-start gap-3 sm:items-center">
@@ -105,15 +139,25 @@ function UpcomingContestAlert({ contest }: { contest: UpcomingContest }) {
           {contest.name} is currently drafting
         </p>
       </div>
-      <a
-        href={contest.contestUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-flex h-8 shrink-0 items-center justify-center gap-1.5 self-start rounded-full bg-slate-950 px-4 text-xs font-semibold text-white transition-colors hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 sm:self-auto"
-      >
-        Draft
-        <ExternalLink className="size-3" aria-hidden="true" />
-      </a>
+      <div className="flex shrink-0 items-center gap-3 self-start sm:self-auto">
+        <button
+          type="button"
+          onClick={onDismiss}
+          className="text-xs font-semibold text-amber-800 underline decoration-amber-400 underline-offset-4 transition-colors hover:text-amber-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-600"
+          aria-label={`Dismiss ${contest.name} notification`}
+        >
+          Dismiss
+        </button>
+        <a
+          href={contest.contestUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex h-8 items-center justify-center gap-1.5 rounded-full bg-slate-950 px-4 text-xs font-semibold text-white transition-colors hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+        >
+          Draft
+          <ExternalLink className="size-3" aria-hidden="true" />
+        </a>
+      </div>
     </div>
   );
 }
@@ -122,6 +166,13 @@ export function Dashboard({ seasonName }: { seasonName: string }) {
   const [standingsSorting, setStandingsSorting] = useState<SortingState>(
     defaultStandingsSorting,
   );
+  const [dismissedContestIds, setDismissedContestIds] =
+    useState<Set<string> | null>(null);
+
+  useEffect(() => {
+    setDismissedContestIds(loadDismissedContestIds());
+  }, []);
+
   const encodedSeason = encodeURIComponent(seasonName);
   const standingsQuery = useQuery({
     queryKey: ["standings", seasonName],
@@ -158,18 +209,36 @@ export function Dashboard({ seasonName }: { seasonName: string }) {
     setStandingsSorting(defaultStandingsSorting.map((sort) => ({ ...sort })));
   };
 
+  const dismissUpcomingContest = (upcomingContestId: string) => {
+    setDismissedContestIds((current) => {
+      const next = new Set(current ?? []);
+      next.add(upcomingContestId);
+      storeDismissedContestIds(next);
+      return next;
+    });
+  };
+
+  const visibleUpcomingContests = dismissedContestIds === null
+    ? []
+    : upcomingContestsQuery.data?.upcomingContests.filter(
+      (contest) => !dismissedContestIds.has(contest.upcomingContestId),
+    ) ?? [];
+
   return (
     <div id="top" className="page-backdrop min-h-screen px-3 py-3 sm:px-6 sm:py-6">
       <main className="dashboard-shell mx-auto min-h-[calc(100vh-48px)] max-w-[1800px] rounded-[28px] border border-white/70 bg-[#e9eef2] p-4 shadow-[0_22px_80px_rgba(15,23,42,0.14)] sm:p-7">
         <LeagueHeader seasonName={seasonName} />
 
         <section id="standings" className="scroll-mt-6 pt-7 sm:pt-9">
-          {upcomingContestsQuery.data?.upcomingContests.length ? (
+          {visibleUpcomingContests.length ? (
             <div className="mb-4 space-y-3">
-              {upcomingContestsQuery.data.upcomingContests.map((contest) => (
+              {visibleUpcomingContests.map((contest) => (
                 <UpcomingContestAlert
                   key={contest.upcomingContestId}
                   contest={contest}
+                  onDismiss={() => {
+                    dismissUpcomingContest(contest.upcomingContestId);
+                  }}
                 />
               ))}
             </div>
