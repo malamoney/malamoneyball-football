@@ -11,6 +11,7 @@ import {
   Trophy,
   Users,
 } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
 import { LeagueHeader } from "@/components/league-header";
@@ -66,7 +67,10 @@ function LoadingRows() {
 
 function ContestRow({ contest }: { contest: ContestSummary }) {
   return (
-    <div className="group flex items-center gap-4 rounded-2xl border border-slate-100 bg-slate-50/70 px-4 py-4 transition-colors hover:border-violet-100 hover:bg-violet-50/40 sm:px-5">
+    <Link
+      href={`/contests/${encodeURIComponent(contest.contestKey)}`}
+      className="group flex items-center gap-4 rounded-2xl border border-slate-100 bg-slate-50/70 px-4 py-4 outline-none transition-colors hover:border-violet-100 hover:bg-violet-50/40 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 sm:px-5"
+    >
       <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-white text-violet-700 shadow-sm ring-1 ring-slate-100">
         <Trophy className="size-5" aria-hidden="true" />
       </div>
@@ -80,7 +84,7 @@ function ContestRow({ contest }: { contest: ContestSummary }) {
         #{contest.contestKey}
       </span>
       <ChevronRight className="size-4 text-slate-300 transition-transform group-hover:translate-x-0.5 group-hover:text-violet-500" />
-    </div>
+    </Link>
   );
 }
 
