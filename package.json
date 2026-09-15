@@ -15,6 +15,7 @@
     "fetch:contest": "node --import tsx src/cli.ts",
     "start": "next start",
     "standings": "node --env-file=.env --import tsx src/standings-cli.ts",
+    "upcoming-contest:add": "node --env-file=.env --import tsx src/add-upcoming-contest-cli.ts",
     "test": "node --import tsx --test test/*.test.ts",
     "typecheck": "tsc --noEmit"
   },

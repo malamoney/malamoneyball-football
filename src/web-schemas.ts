@@ -31,6 +31,18 @@ export const ContestsResponseSchema = z.strictObject({
   contests: z.array(ContestSummarySchema),
 });
 
+export const UpcomingContestSchema = z.strictObject({
+  upcomingContestId: z.string().min(1),
+  name: z.string().min(1),
+  contestUrl: z.url(),
+  createdAt: z.iso.datetime(),
+  expiresAt: z.iso.datetime(),
+});
+
+export const UpcomingContestsResponseSchema = z.strictObject({
+  upcomingContests: z.array(UpcomingContestSchema),
+});
+
 export const TeamRosterPlayerSchema = z.strictObject({
   position: z.string().min(1),
   playerImage: z.string(),
@@ -94,6 +106,8 @@ export type StandingsEntry = z.infer<typeof StandingsEntrySchema>;
 export type StandingsResponse = z.infer<typeof StandingsResponseSchema>;
 export type ContestSummary = z.infer<typeof ContestSummarySchema>;
 export type ContestsResponse = z.infer<typeof ContestsResponseSchema>;
+export type UpcomingContest = z.infer<typeof UpcomingContestSchema>;
+export type UpcomingContestsResponse = z.infer<typeof UpcomingContestsResponseSchema>;
 export type TeamRosterPlayer = z.infer<typeof TeamRosterPlayerSchema>;
 export type TeamContestResult = z.infer<typeof TeamContestResultSchema>;
 export type TeamDetails = z.infer<typeof TeamDetailsSchema>;

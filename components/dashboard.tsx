@@ -6,6 +6,8 @@ import {
   CalendarDays,
   ChevronRight,
   CircleCheck,
+  ExternalLink,
+  Megaphone,
   RotateCcw,
   ShieldCheck,
   Trophy,
@@ -28,7 +30,9 @@ import {
 import {
   ContestsResponseSchema,
   StandingsResponseSchema,
+  UpcomingContestsResponseSchema,
   type ContestSummary,
+  type UpcomingContest,
 } from "@/src/web-schemas";
 
 const defaultStandingsSorting: SortingState = [
@@ -88,6 +92,30 @@ function ContestRow({ contest }: { contest: ContestSummary }) {
   );
 }
 
+function UpcomingContestAlert({ contest }: { contest: UpcomingContest }) {
+  return (
+    <div className="flex flex-col gap-4 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-amber-950 shadow-sm sm:flex-row sm:items-center">
+      <div className="flex min-w-0 flex-1 items-start gap-3 sm:items-center">
+        <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-white/80 text-amber-700 ring-1 ring-amber-200">
+          <Megaphone className="size-5" aria-hidden="true" />
+        </div>
+        <p className="min-w-0 text-sm font-semibold sm:text-base">
+          {contest.name} is currently drafting
+        </p>
+      </div>
+      <a
+        href={contest.contestUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex h-8 shrink-0 items-center justify-center gap-1.5 self-start rounded-full bg-slate-950 px-4 text-xs font-semibold text-white transition-colors hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 sm:self-auto"
+      >
+        Draft
+        <ExternalLink className="size-3" aria-hidden="true" />
+      </a>
+    </div>
+  );
+}
+
 export function Dashboard({ seasonName }: { seasonName: string }) {
   const [standingsSorting, setStandingsSorting] = useState<SortingState>(
     defaultStandingsSorting,
@@ -107,6 +135,22 @@ export function Dashboard({ seasonName }: { seasonName: string }) {
         await fetchJson(`/api/contests?season=${encodedSeason}`),
       ),
   });
+  const upcomingContestsQuery = useQuery({
+    queryKey: ["upcoming-contests", seasonName],
+    queryFn: async () => {
+      const response = await fetch(
+        `/api/upcoming-contests?season=${encodedSeason}`,
+        { cache: "no-store" },
+      );
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`);
+      }
+      return UpcomingContestsResponseSchema.parse(await response.json());
+    },
+    gcTime: 0,
+    refetchOnMount: "always",
+    staleTime: 0,
+  });
 
   const resetStandingsSorting = () => {
     setStandingsSorting(defaultStandingsSorting.map((sort) => ({ ...sort })));
@@ -118,6 +162,16 @@ export function Dashboard({ seasonName }: { seasonName: string }) {
         <LeagueHeader seasonName={seasonName} />
 
         <section id="standings" className="scroll-mt-6 pt-7 sm:pt-9">
+          {upcomingContestsQuery.data?.upcomingContests.length ? (
+            <div className="mb-4 space-y-3">
+              {upcomingContestsQuery.data.upcomingContests.map((contest) => (
+                <UpcomingContestAlert
+                  key={contest.upcomingContestId}
+                  contest={contest}
+                />
+              ))}
+            </div>
+          ) : null}
           <SectionHeading>Standings</SectionHeading>
           <Card className="mt-4 overflow-hidden">
             <CardHeader className="flex-row items-start justify-between gap-5 border-b border-slate-100 p-5 sm:items-center sm:p-7">

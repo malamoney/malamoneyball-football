@@ -179,6 +179,22 @@ The command is safe to rerun. Imported facts are updated, raw payloads are
 archived, missing participants retain their default rows, and manual overrides
 are not overwritten.
 
+### Announce an upcoming contest
+
+Add the DraftKings contest link shown above the dashboard standings:
+
+```bash
+npm run upcoming-contest:add -- \
+  --contest-url "https://www.draftkings.com/draft/contest/123" \
+  --contest-name "malamoneyball 2026 week 2"
+```
+
+The command uses `SEASON_NAME` and `DK_LEAGUE_ID` from `.env`. Re-running it
+with the same URL updates the announcement instead of creating a duplicate.
+Announcements expire at 1:00 PM America/New_York on Sunday. Supabase Cron
+removes expired rows hourly, and the dashboard also excludes expired rows from
+its query so a delayed cleanup job cannot display a stale alert.
+
 ### View standings
 
 ```bash
